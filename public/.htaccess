@@ -1,0 +1,8 @@
+RewriteEngine On
+
+# Serve existing files directly (CSS, JS, images)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Route everything else through index.php
+RewriteRule ^ index.php [QSA,L]

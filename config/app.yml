@@ -1,0 +1,40 @@
+tire_category_id: 1
+
+vehicle_type_shortcuts:
+    O: 1
+    D: 2
+    T: 3
+    C: 4
+    R: 5
+    P: 6
+    M: 7
+    S: 10
+    G: 9
+    Q: 8
+
+csv_delimiter: "@"
+csv_columns:
+    - numkat1
+    - numkat2
+    - ean
+    - id
+    - producent
+    - rodzaj
+    - bieznik
+    - rozmiar
+    - rozmiar2
+    - indeksy
+    - indeksy2
+    - inne
+    - opor
+    - mokre
+    - halas
+    - fale
+    - eprel
+    - netto
+
+upload_max_size_mb: 10
+
+valid_rolling_resistance: [A, B, C, D, E, F, G]
+valid_adhesion: [A, B, C, D, E, F, G]
+valid_waves: [A, B, C, ")", "))", ")))"]
