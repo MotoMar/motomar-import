@@ -62,6 +62,16 @@ final class Bootstrap
         return self::$db;
     }
 
+    public static function pdo(): PDO
+    {
+        // Medoo stores PDO in private $pdo property
+        $reflection = new \ReflectionClass(self::$db);
+        $property = $reflection->getProperty('pdo');
+        $property->setAccessible(true);
+
+        return $property->getValue(self::$db);
+    }
+
     public static function logger(): Logger
     {
         return self::$logger;

@@ -12,6 +12,9 @@ final class TireRepository
 {
     private Medoo $db;
 
+    private static ?DictionaryMatcher $dictionaryMatcher = null;
+    private static ?TireParametersBuilder $parametersBuilder = null;
+
     public function __construct()
     {
         $this->db = Bootstrap::db();
@@ -409,6 +412,13 @@ final class TireRepository
             'id_tires_marker'       => 1,
         ]);
 
+        // Create tires_classified_parameters entry with classified parameters
+        $classified = $this->classifyTireParameters($productId, $data);
+        $this->db->insert('tires_classified_parameters', [
+            'id_tire'    => $productId,
+            'parameters' => json_encode($classified, JSON_UNESCAPED_UNICODE),
+        ]);
+
         // Create price group entries
         $this->createPriceGroups($productId, $data['price']);
 
@@ -416,6 +426,42 @@ final class TireRepository
     }
 
     // ------------------------------------------------------------------ private
+
+    private function getDictionaryMatcher(): DictionaryMatcher
+    {
+        if (self::$dictionaryMatcher === null) {
+            self::$dictionaryMatcher = new DictionaryMatcher(Bootstrap::pdo());
+        }
+        return self::$dictionaryMatcher;
+    }
+
+    private function getParametersBuilder(): TireParametersBuilder
+    {
+        if (self::$parametersBuilder === null) {
+            self::$parametersBuilder = new TireParametersBuilder();
+        }
+        return self::$parametersBuilder;
+    }
+
+    private function classifyTireParameters(int $tireId, array $tireData): array
+    {
+        try {
+            $matcher = $this->getDictionaryMatcher();
+            $builder = $this->getParametersBuilder();
+            
+            $tireRow = [
+                'tire_id'           => $tireId,
+                'id_vehicles_type'  => $tireData['vehicle_type_id'] ?? 1,
+                'other'             => $tireData['other'] ?? '',
+            ];
+            
+            return $builder->buildParameters($tireRow, $matcher);
+        } catch (\Throwable $e) {
+            // Log error but don't fail import
+            error_log("Tire parameter classification failed for tire {$tireId}: " . $e->getMessage());
+            return [];
+        }
+    }
 
     private function dimensionId(string $table, string $column, string $value): ?int
     {
