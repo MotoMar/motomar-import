@@ -15,7 +15,7 @@ final class UploadController
 
     public function __construct()
     {
-        $this->session = new ImportSession(dirname(__DIR__, 3) . '/storage');
+        $this->session = new ImportSession(dirname(__DIR__, 2) . '/storage');
     }
 
     public function show(): void
@@ -79,7 +79,7 @@ final class UploadController
         Bootstrap::logger()->info('Session created', [
             'uuid' => $uuid,
             'csvPath' => $csvPath,
-            'storage_dir' => dirname(__DIR__, 3) . '/storage',
+            'storage_dir' => dirname(__DIR__, 2) . '/storage',
         ]);
 
         if (!move_uploaded_file($file['tmp_name'], $csvPath)) {

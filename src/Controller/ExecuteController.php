@@ -17,7 +17,7 @@ final class ExecuteController
 
     public function __construct()
     {
-        $this->session = new ImportSession(dirname(__DIR__, 3) . '/storage');
+        $this->session = new ImportSession(dirname(__DIR__, 2) . '/storage');
         $this->repo    = new TireRepository();
     }
 
