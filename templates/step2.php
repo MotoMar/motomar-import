@@ -58,7 +58,7 @@ ob_start();
                                                value="existing"
                                                class="radio radio-primary radio-sm"
                                                x-model="action"
-                                               <?= empty($treads) ? 'disabled' : '' ?>>
+                                               <?= empty($treads) ? 'disabled' : ($defaultAction === 'existing' ? 'checked' : '') ?>>
                                         <span class="label-text <?= empty($treads) ? 'opacity-40' : '' ?>">Istniejący</span>
                                     </label>
                                     <label class="label cursor-pointer gap-1">
@@ -67,7 +67,7 @@ ob_start();
                                                value="new"
                                                class="radio radio-warning radio-sm"
                                                x-model="action"
-                                               <?= empty($treads) ? 'checked' : '' ?>>
+                                               <?= empty($treads) || $defaultAction === 'new' ? 'checked' : '' ?>>
                                         <span class="label-text text-warning font-medium">Nowy</span>
                                     </label>
                                 </div>
