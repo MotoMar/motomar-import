@@ -48,11 +48,26 @@ final class ImportSession
     {
         $uuid = $this->uuid();
 
+        error_log(sprintf('ImportSession::reset - uuid: %s', $uuid ?? '(none)'));
+
         if ($uuid !== null && is_dir($this->importDir($uuid))) {
-            $this->deleteDirectory($this->importDir($uuid));
+            try {
+                $dir = $this->importDir($uuid);
+                error_log(sprintf('ImportSession::reset - deleting directory: %s', $dir));
+                $this->deleteDirectory($dir);
+                error_log('ImportSession::reset - directory deleted successfully');
+            } catch (\Throwable $e) {
+                error_log(sprintf(
+                    'ImportSession::reset - failed to delete directory: %s (%s)',
+                    $e->getMessage(),
+                    $e->getFile() . ':' . $e->getLine()
+                ));
+                // Don't throw - continue with session cleanup
+            }
         }
 
         unset($_SESSION[self::KEY_UUID], $_SESSION[self::KEY_STEP]);
+        error_log('ImportSession::reset - session vars unset');
     }
 
     public function csvPath(string $uuid): string
@@ -126,10 +141,35 @@ final class ImportSession
 
     private function deleteDirectory(string $dir): void
     {
-        foreach (array_diff(scandir($dir), ['.', '..']) as $entry) {
-            $path = $dir . '/' . $entry;
-            is_dir($path) ? $this->deleteDirectory($path) : unlink($path);
+        if (!is_dir($dir)) {
+            error_log("ImportSession::deleteDirectory - directory does not exist: $dir");
+            return;
         }
-        rmdir($dir);
+
+        $entries = @scandir($dir);
+        if ($entries === false) {
+            error_log("ImportSession::deleteDirectory - scandir failed for: $dir");
+            throw new \RuntimeException("Cannot scan directory: $dir");
+        }
+
+        foreach (array_diff($entries, ['.', '..']) as $entry) {
+            $path = $dir . '/' . $entry;
+
+            if (is_dir($path)) {
+                $this->deleteDirectory($path);
+            } else {
+                if (!@unlink($path)) {
+                    error_log("ImportSession::deleteDirectory - failed to delete file: $path");
+                    throw new \RuntimeException("Cannot delete file: $path");
+                }
+            }
+        }
+
+        if (!@rmdir($dir)) {
+            error_log("ImportSession::deleteDirectory - failed to remove directory: $dir");
+            throw new \RuntimeException("Cannot remove directory: $dir");
+        }
+
+        error_log("ImportSession::deleteDirectory - deleted: $dir");
     }
 }

@@ -142,7 +142,23 @@ final class UploadController
 
     public function reset(): void
     {
-        $this->session->reset();
+        try {
+            Bootstrap::logger()->info('Reset requested', [
+                'uuid' => $this->session->uuid(),
+                'step' => $this->session->step(),
+            ]);
+
+            $this->session->reset();
+
+            Bootstrap::logger()->info('Reset completed successfully');
+        } catch (\Throwable $e) {
+            Bootstrap::logger()->error('Reset failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            $this->flashError('Błąd podczas resetowania sesji: ' . $e->getMessage());
+        }
+
         $this->redirect('');
     }
 
