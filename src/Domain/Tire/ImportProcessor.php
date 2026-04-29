@@ -29,6 +29,7 @@ final class ImportProcessor
         'update_labels'    => true,
         'update_inne'      => true,
         'update_structure' => false,
+        'update_pricing'   => false,
     ];
 
     private array $stats = [
@@ -83,7 +84,7 @@ final class ImportProcessor
 
     /**
      * @param  array<string, array{tread_id: int, season_id: int, is_new: bool}> $mapping  mappingKey → resolved tread
-     * @param  array{update_price?: bool, update_labels?: bool, update_inne?: bool, update_structure?: bool} $options
+     * @param  array{update_price?: bool, update_labels?: bool, update_inne?: bool, update_structure?: bool, update_pricing?: bool} $options
      */
     public function run(string $csvPath, array $mapping, array $options = []): array
     {
@@ -170,6 +171,10 @@ final class ImportProcessor
 
         if ($this->options['update_structure']) {
             $this->repo->updateTireStructure($tireId, $row);
+        }
+
+        if ($this->options['update_pricing'] && $row->hasValidPrice()) {
+            $this->repo->updateProductCatalogPrice($tireId, $row->price);
         }
 
         $this->repo->updateTireEanRef($tireId, $row->ean, $row->ref2);

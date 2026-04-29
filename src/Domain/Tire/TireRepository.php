@@ -183,6 +183,11 @@ final class TireRepository
         );
     }
 
+    public function updateProductCatalogPrice(int $productId, float $price): void
+    {
+        $this->db->update('products', ['price_catalog_netto' => $price], ['id' => $productId]);
+    }
+
     public function updateTireInne(int $tireId, array $inne): void
     {
         $fields = [

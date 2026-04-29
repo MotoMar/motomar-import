@@ -127,6 +127,13 @@ ob_start();
                                 <span class="block text-xs text-base-content/60">Wymiary, LI/SI, rozmiar — domyślnie wyłączone</span>
                             </span>
                         </label>
+                        <label class="label cursor-pointer justify-start gap-3">
+                            <input type="checkbox" name="update_pricing" value="1" class="checkbox checkbox-primary">
+                            <span class="label-text">
+                                <span class="font-medium">Ceny katalogowe</span>
+                                <span class="block text-xs text-base-content/60">Aktualizuje ceny katalogowe na podstawie REFów</span>
+                            </span>
+                        </label>
                     </div>
                 </div>
             </div>
