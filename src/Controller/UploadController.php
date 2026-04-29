@@ -28,19 +28,33 @@ final class UploadController
 
     public function handle(): void
     {
-        if (!Csrf::validate($_POST['_csrf'] ?? '')) {
-            $this->flashError('Nieprawidłowy token CSRF. Odśwież stronę i spróbuj ponownie.');
-            $this->redirect('');
-            return;
-        }
+        try {
+            Bootstrap::logger()->info('Upload started', [
+                'post_keys' => array_keys($_POST),
+                'files_keys' => array_keys($_FILES),
+            ]);
 
-        $file = $_FILES['csv_file'] ?? null;
+            if (!Csrf::validate($_POST['_csrf'] ?? '')) {
+                $this->flashError('Nieprawidłowy token CSRF. Odśwież stronę i spróbuj ponownie.');
+                $this->redirect('');
+                return;
+            }
 
-        if (!is_array($file) || $file['error'] !== UPLOAD_ERR_OK) {
-            $this->flashError('Nie wybrano pliku lub wystąpił błąd przesyłania.');
-            $this->redirect('');
-            return;
-        }
+            $file = $_FILES['csv_file'] ?? null;
+
+            if (!is_array($file) || $file['error'] !== UPLOAD_ERR_OK) {
+                $error = is_array($file) ? ($file['error'] ?? 'unknown') : 'no file';
+                Bootstrap::logger()->error('File upload failed', ['error' => $error, 'file' => $file]);
+                $this->flashError('Nie wybrano pliku lub wystąpił błąd przesyłania.');
+                $this->redirect('');
+                return;
+            }
+
+            Bootstrap::logger()->info('File uploaded', [
+                'name' => $file['name'],
+                'size' => $file['size'],
+                'tmp_name' => $file['tmp_name'],
+            ]);
 
         $maxBytes = (int) Bootstrap::config()['upload_max_size_mb'] * 1024 * 1024;
 
@@ -63,7 +77,20 @@ final class UploadController
         session_regenerate_id(true);
         $csvPath = $this->session->csvPath($uuid);
 
+        Bootstrap::logger()->info('Session created', [
+            'uuid' => $uuid,
+            'csvPath' => $csvPath,
+            'storage_dir' => dirname(__DIR__, 3) . '/storage',
+        ]);
+
         if (!move_uploaded_file($file['tmp_name'], $csvPath)) {
+            Bootstrap::logger()->error('Failed to move uploaded file', [
+                'from' => $file['tmp_name'],
+                'to' => $csvPath,
+                'tmp_exists' => file_exists($file['tmp_name']),
+                'target_dir_exists' => is_dir(dirname($csvPath)),
+                'target_dir_writable' => is_writable(dirname($csvPath)),
+            ]);
             $this->flashError('Błąd zapisu pliku na serwerze.');
             $this->redirect('');
             return;
@@ -91,7 +118,20 @@ final class UploadController
             ]);
 
         } catch (\RuntimeException $e) {
+            Bootstrap::logger()->error('CSV parsing failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             $this->flashError('Błąd parsowania pliku: ' . $e->getMessage());
+            $this->session->reset();
+            $this->redirect('');
+            return;
+        } catch (\Throwable $e) {
+            Bootstrap::logger()->error('Unexpected error during upload', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            $this->flashError('Nieoczekiwany błąd: ' . $e->getMessage());
             $this->session->reset();
             $this->redirect('');
             return;

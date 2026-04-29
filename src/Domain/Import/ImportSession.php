@@ -68,7 +68,16 @@ final class ImportSession
 
         $path = $this->importDir($uuid) . "/{$key}.json";
         $json = json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-        file_put_contents($path, $json, LOCK_EX);
+        $result = file_put_contents($path, $json, LOCK_EX);
+
+        error_log(sprintf(
+            'ImportSession::write - uuid: %s, key: %s, path: %s, bytes: %d, success: %s',
+            $uuid,
+            $key,
+            $path,
+            $result !== false ? $result : 0,
+            $result !== false ? 'yes' : 'no'
+        ));
     }
 
     public function read(string $uuid, string $key): mixed
@@ -79,11 +88,27 @@ final class ImportSession
 
         $path = $this->importDir($uuid) . "/{$key}.json";
 
+        error_log(sprintf(
+            'ImportSession::read - uuid: %s, key: %s, path: %s, exists: %s',
+            $uuid,
+            $key,
+            $path,
+            is_file($path) ? 'yes' : 'no'
+        ));
+
         if (!is_file($path)) {
             return null;
         }
 
-        return json_decode(file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
+        $content = file_get_contents($path);
+        $data = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+
+        error_log(sprintf(
+            'ImportSession::read - decoded items: %d',
+            is_array($data) ? count($data) : 0
+        ));
+
+        return $data;
     }
 
     private static function uuid4(): string

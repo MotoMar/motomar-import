@@ -24,13 +24,30 @@ final class MappingController
     {
         $uuid = $this->session->uuid();
 
+        Bootstrap::logger()->info('Mapping page accessed', [
+            'uuid' => $uuid,
+            'step' => $this->session->step(),
+            'session_id' => session_id(),
+        ]);
+
         if ($uuid === null || $this->session->step() < 2) {
+            Bootstrap::logger()->warning('Mapping: invalid session or step', [
+                'uuid' => $uuid,
+                'step' => $this->session->step(),
+            ]);
             $this->redirect('');
             return;
         }
 
         $models  = $this->session->read($uuid, 'models') ?? [];
         $seasons = $this->repo->allSeasons();
+
+        Bootstrap::logger()->info('Mapping data loaded', [
+            'uuid' => $uuid,
+            'models_count' => count($models),
+            'seasons_count' => count($seasons),
+            'models_keys' => array_keys($models),
+        ]);
 
         // Load treads only for producers that appear in this CSV — not all 100+ producers
         $producerNamesInCsv = array_unique(array_column(array_values($models), 'producer_name'));
