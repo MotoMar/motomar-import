@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App;
 
 use App\Controller\ExecuteController;
+use App\Controller\HistoryController;
 use App\Controller\LoginController;
 use App\Controller\MappingController;
 use App\Controller\SeasonsController;
@@ -19,6 +20,8 @@ final class Router
             '/seasons' => [SeasonsController::class, 'show'],
             '/execute' => [ExecuteController::class, 'show'],
             '/result'  => [ExecuteController::class, 'showResult'],
+            '/history' => [HistoryController::class, 'show'],
+            '/history-detail' => [HistoryController::class, 'detail'],
             '/reset'   => [UploadController::class, 'reset'],
             '/login'   => [LoginController::class, 'show'],
             '/logout'  => [LoginController::class, 'logout'],

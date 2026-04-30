@@ -14,11 +14,13 @@ final class ExecuteController
 {
     private ImportSession  $session;
     private TireRepository $repo;
+    private ImportHistoryRepository $history;
 
     public function __construct()
     {
         $this->session = new ImportSession(dirname(__DIR__, 2) . '/storage');
         $this->repo    = new TireRepository();
+        $this->history = new ImportHistoryRepository();
     }
 
     public function show(): void
@@ -105,6 +107,18 @@ final class ExecuteController
 
         $this->session->write($uuid, 'result', $stats);
         $this->session->setStep(5);
+
+        // Record import in history
+        $filename = basename($csvPath) ?: 'unknown.csv';
+        $this->history->recordImport(
+            $filename,
+            (int) ($stats['created'] ?? 0),
+            (int) ($stats['updated'] ?? 0),
+            (int) ($stats['skipped'] ?? 0),
+            count($stats['errors'] ?? []),
+            $stats['errors'] ?? [],
+            $options
+        );
 
         $this->redirect('result');
     }

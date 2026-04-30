@@ -15,6 +15,18 @@
     <div class="navbar-start">
         <span class="text-xl font-bold text-primary">Import cenników opon</span>
     </div>
+    <div class="navbar-center gap-4 hidden md:flex">
+        <?php if (\App\Auth::check()): ?>
+            <a href="<?= htmlspecialchars($base . '/', ENT_QUOTES, 'UTF-8') ?>"
+               class="btn btn-ghost btn-sm">
+                Import
+            </a>
+            <a href="<?= htmlspecialchars($base . '/history', ENT_QUOTES, 'UTF-8') ?>"
+               class="btn btn-ghost btn-sm">
+                Historia
+            </a>
+        <?php endif; ?>
+    </div>
     <div class="navbar-end gap-2">
         <?php if (\App\Auth::check()): ?>
             <span class="text-sm text-base-content/60 hidden sm:inline">
