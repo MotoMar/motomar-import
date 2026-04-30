@@ -174,7 +174,12 @@ final class ImportProcessor
         }
 
         if ($this->options['update_pricing'] && $row->hasValidPrice()) {
-            $this->repo->updateProductCatalogPrice($tireId, $row->price);
+            if ($row->hasValidEan()) {
+                $tireByEan = $this->repo->tireByEan($row->ean);
+                if ($tireByEan !== null) {
+                    $this->repo->updateProductCatalogPrice($tireByEan['id'], $row->price);
+                }
+            }
         }
 
         $this->repo->updateTireEanRef($tireId, $row->ean, $row->ref2);
