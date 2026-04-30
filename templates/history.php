@@ -33,7 +33,7 @@ ob_start();
                 <div class="stat-value <?= $stats['total_errors'] > 0 ? 'text-error' : 'text-neutral' ?>">
                     <?= htmlspecialchars((string) $stats['total_errors']) ?>
                 </div>
-                <div class="stat-desc">wierszy z błेdem</div>
+                <div class="stat-desc">wierszy z błędem</div>
             </div>
         </div>
 

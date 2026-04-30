@@ -6,6 +6,7 @@ namespace App\Domain\Import;
 
 use App\Bootstrap;
 use Medoo\Medoo;
+use PDO;
 
 final class ImportHistoryRepository
 {
@@ -50,10 +51,15 @@ final class ImportHistoryRepository
      */
     public function allImports(int $limit = 100, int $offset = 0): array
     {
-        return $this->db->select('import_history', '*', [
-            'ORDER'  => ['id' => 'DESC'],
-            'LIMIT'  => [$offset, $limit],
-        ]) ?: [];
+        try {
+            return $this->db->select('import_history', '*', [
+                'ORDER'  => ['id' => 'DESC'],
+                'LIMIT'  => [$offset, $limit],
+            ]) ?: [];
+        } catch (\Throwable $e) {
+            error_log('ImportHistoryRepository::allImports error: ' . $e->getMessage());
+            return [];
+        }
     }
 
     /**
@@ -61,8 +67,13 @@ final class ImportHistoryRepository
      */
     public function countImports(): int
     {
-        $result = $this->db->count('import_history');
-        return (int) $result;
+        try {
+            $result = $this->db->count('import_history');
+            return (int) $result;
+        } catch (\Throwable $e) {
+            error_log('ImportHistoryRepository::countImports error: ' . $e->getMessage());
+            return 0;
+        }
     }
 
     /**
@@ -70,7 +81,12 @@ final class ImportHistoryRepository
      */
     public function getImport(int $id): ?array
     {
-        return $this->db->get('import_history', '*', ['id' => $id]) ?: null;
+        try {
+            return $this->db->get('import_history', '*', ['id' => $id]) ?: null;
+        } catch (\Throwable $e) {
+            error_log('ImportHistoryRepository::getImport error: ' . $e->getMessage());
+            return null;
+        }
     }
 
     /**
@@ -78,21 +94,29 @@ final class ImportHistoryRepository
      */
     public function getStatistics(): array
     {
-        $result = $this->db->get('import_history', [
-            'total_imports' => 'COUNT(*)',
-            'total_created' => 'SUM(created_count)',
-            'total_updated' => 'SUM(updated_count)',
-            'total_skipped' => 'SUM(skipped_count)',
-            'total_errors'  => 'SUM(error_count)',
-        ]);
+        try {
+            $pdo = Bootstrap::pdo();
+            $stmt = $pdo->query('SELECT COUNT(*) as total_imports, SUM(created_count) as total_created, SUM(updated_count) as total_updated, SUM(skipped_count) as total_skipped, SUM(error_count) as total_errors FROM import_history');
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return [
-            'total_imports' => (int) ($result['total_imports'] ?? 0),
-            'total_created' => (int) ($result['total_created'] ?? 0),
-            'total_updated' => (int) ($result['total_updated'] ?? 0),
-            'total_skipped' => (int) ($result['total_skipped'] ?? 0),
-            'total_errors'  => (int) ($result['total_errors'] ?? 0),
-        ];
+            return [
+                'total_imports' => (int) ($result['total_imports'] ?? 0),
+                'total_created' => (int) ($result['total_created'] ?? 0),
+                'total_updated' => (int) ($result['total_updated'] ?? 0),
+                'total_skipped' => (int) ($result['total_skipped'] ?? 0),
+                'total_errors'  => (int) ($result['total_errors'] ?? 0),
+            ];
+        } catch (\Throwable $e) {
+            // If table doesn't exist, return empty stats
+            error_log('ImportHistoryRepository::getStatistics error: ' . $e->getMessage());
+            return [
+                'total_imports' => 0,
+                'total_created' => 0,
+                'total_updated' => 0,
+                'total_skipped' => 0,
+                'total_errors'  => 0,
+            ];
+        }
     }
 
     /**
@@ -101,8 +125,10 @@ final class ImportHistoryRepository
     private function ensureTableExists(): void
     {
         try {
-            $this->db->get('import_history', 'id', 'LIMIT 1');
-        } catch (\Throwable) {
+            $pdo = Bootstrap::pdo();
+            $stmt = $pdo->query("SELECT 1 FROM import_history LIMIT 1");
+        } catch (\Throwable $e) {
+            error_log('ImportHistoryRepository: Table does not exist, creating... ' . $e->getMessage());
             $this->createTable();
         }
     }
@@ -130,7 +156,13 @@ final class ImportHistoryRepository
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         SQL;
 
-        $this->db->pdo->exec($sql);
+        try {
+            Bootstrap::pdo()->exec($sql);
+            error_log('ImportHistoryRepository: Table created successfully');
+        } catch (\Throwable $e) {
+            error_log('ImportHistoryRepository: Failed to create table: ' . $e->getMessage());
+            throw $e;
+        }
     }
 }
 
