@@ -21,7 +21,7 @@ ob_start();
             </div>
             <div class="form-control">
                 <label class="label">
-                    <span class="label-text font-bold">Nazwa pliku</span>
+                    <span class="label-text font-bold">Producent</span>
                 </label>
                 <p class="font-mono"><code><?= htmlspecialchars($import['filename']) ?></code></p>
             </div>

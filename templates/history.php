@@ -51,7 +51,7 @@ ob_start();
                 <thead>
                     <tr>
                         <th>Data importu</th>
-                        <th>Plik</th>
+                        <th>Producent</th>
                         <th>Dodane</th>
                         <th>Zaktualizowane</th>
                         <th>Pominięte</th>

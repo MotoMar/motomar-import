@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Import;
 
+use App\Auth;
 use App\Bootstrap;
 use Medoo\Medoo;
 use PDO;
@@ -30,6 +31,10 @@ final class ImportHistoryRepository
         array $errorMessages,
         array $options
     ): int {
+        // Extract username without domain
+        $userEmail = $_SESSION['_user'] ?? Auth::email() ?? 'unknown';
+        $username = $this->extractUsername($userEmail);
+
         $this->db->insert('import_history', [
             'filename'        => $filename,
             'created_count'   => $created,
@@ -39,7 +44,7 @@ final class ImportHistoryRepository
             'error_messages'  => json_encode($errorMessages, JSON_UNESCAPED_UNICODE),
             'options'         => json_encode($options, JSON_UNESCAPED_UNICODE),
             'imported_at'     => date('Y-m-d H:i:s'),
-            'imported_by'     => $_SESSION['_user'] ?? 'unknown',
+            'imported_by'     => $username,
         ]);
 
         return (int) $this->db->id();
@@ -163,6 +168,15 @@ final class ImportHistoryRepository
             error_log('ImportHistoryRepository: Failed to create table: ' . $e->getMessage());
             throw $e;
         }
+    }
+
+    /**
+     * Extract username from email (remove domain part).
+     */
+    private function extractUsername(string $email): string
+    {
+        $atPos = strpos($email, '@');
+        return $atPos !== false ? substr($email, 0, $atPos) : $email;
     }
 }
 

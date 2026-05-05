@@ -111,9 +111,12 @@ final class ExecuteController
 
         // Record import in history (outside transaction)
         try {
-            $filename = basename($csvPath) ?: 'unknown.csv';
+            // Extract producer name from mapping (first unique producer)
+            $producerNames = array_unique(array_column($mapping, 'producer_name'));
+            $producerName = !empty($producerNames) ? reset($producerNames) : 'unknown';
+
             $this->history->recordImport(
-                $filename,
+                $producerName,
                 (int) ($stats['created'] ?? 0),
                 (int) ($stats['updated'] ?? 0),
                 (int) ($stats['skipped'] ?? 0),
