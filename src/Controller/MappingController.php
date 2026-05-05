@@ -54,6 +54,7 @@ final class MappingController
 
         $treadsByProducer = [];
         foreach ($producerNamesInCsv as $name) {
+            $treadsByProducer[$name] = []; // Initialize with empty array for all producers
             $producer = $this->repo->producerByName($name);
             if ($producer !== null) {
                 $treadsByProducer[$name] = $this->repo->treadsByProducer($producer['id']);

@@ -92,7 +92,11 @@ final class TireRepository
     /** @return array<int, array{id: int, season: string}> */
     public function allSeasons(): array
     {
-        $rows = $this->db->select('tires_seasons', ['id', 'season'], ['id' => [1, 2, 3]]);
+        $rows = $this->db->select('tires_seasons', ['id', 'season'], ['id' => [1, 2, 3]]) ?? [];
+
+        if (empty($rows)) {
+            return [];
+        }
 
         $order = [1 => 0, 2 => 1, 3 => 2];
         usort($rows, fn($a, $b) => ($order[$a['id']] ?? 99) <=> ($order[$b['id']] ?? 99));
