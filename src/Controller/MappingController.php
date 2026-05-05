@@ -55,9 +55,19 @@ final class MappingController
         $treadsByProducer = [];
         foreach ($producerNamesInCsv as $name) {
             $treadsByProducer[$name] = []; // Initialize with empty array for all producers
-            $producer = $this->repo->producerByName($name);
-            if ($producer !== null) {
-                $treadsByProducer[$name] = $this->repo->treadsByProducer($producer['id']);
+            try {
+                $producer = $this->repo->producerByName($name);
+                if ($producer !== null) {
+                    $treads = $this->repo->treadsByProducer($producer['id']);
+                    if ($treads !== null && is_array($treads)) {
+                        $treadsByProducer[$name] = $treads;
+                    }
+                }
+            } catch (\Throwable $e) {
+                Bootstrap::logger()->warning('Error loading treads for producer', [
+                    'producer' => $name,
+                    'error' => $e->getMessage(),
+                ]);
             }
         }
 

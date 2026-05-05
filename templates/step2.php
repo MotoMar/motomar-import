@@ -35,13 +35,13 @@ ob_start();
                     </thead>
                     <tbody>
                         <?php foreach ($models as $key => $model):
-                            $encodedKey   = htmlspecialchars($key, ENT_QUOTES, 'UTF-8');
-                            $encodedProd  = htmlspecialchars($model['producer_name'], ENT_QUOTES, 'UTF-8');
-                            $encodedModel = htmlspecialchars($model['model_name'], ENT_QUOTES, 'UTF-8');
-                            $treads        = $treadsByProducer[$model['producer_name']] ?? [];
-                            $modelNameLc   = strtolower($model['model_name']);
-                            $rowId         = 'row_' . md5($key);
-                            $hasMatch      = !empty($treads) && !empty(array_filter($treads, fn($t) => strtolower($t['tread']) === $modelNameLc));
+                            $encodedKey   = htmlspecialchars((string) $key, ENT_QUOTES, 'UTF-8');
+                            $encodedProd  = htmlspecialchars((string) ($model['producer_name'] ?? ''), ENT_QUOTES, 'UTF-8');
+                            $encodedModel = htmlspecialchars((string) ($model['model_name'] ?? ''), ENT_QUOTES, 'UTF-8');
+                            $treads        = $treadsByProducer[$model['producer_name'] ?? ''] ?? [];
+                            $modelNameLc   = strtolower((string) ($model['model_name'] ?? ''));
+                            $rowId         = 'row_' . md5((string) $key);
+                            $hasMatch      = !empty($treads) && !empty(array_filter($treads, fn($t) => strtolower((string) ($t['tread'] ?? '')) === $modelNameLc));
                             $defaultAction = $hasMatch ? 'existing' : 'new';
                         ?>
                         <tr x-data="{ action: '<?= $defaultAction ?>' }">
@@ -75,7 +75,7 @@ ob_start();
                             <td>
                                 <?php if (!empty($treads)):
                                     // Split into similar (share first 4 chars or substring match) and others
-                                    $prefix4   = mb_strtolower(mb_substr($model['model_name'], 0, 4));
+                                    $prefix4   = mb_strtolower(mb_substr((string) ($model['model_name'] ?? ''), 0, 4));
                                     $isSimilar = static function(string $name) use ($modelNameLc, $prefix4): bool {
                                         $lc = mb_strtolower($name);
                                         if ($prefix4 !== '' && str_starts_with($lc, $prefix4)) {
@@ -86,8 +86,8 @@ ob_start();
                                         }
                                         return false;
                                     };
-                                    $similar = array_filter($treads, fn($t) => $isSimilar($t['tread']));
-                                    $others  = array_filter($treads, fn($t) => !$isSimilar($t['tread']));
+                                    $similar = array_filter($treads, fn($t) => $isSimilar((string) ($t['tread'] ?? '')));
+                                    $others  = array_filter($treads, fn($t) => !$isSimilar((string) ($t['tread'] ?? '')));
                                 ?>
                                 <div x-show="action === 'existing'">
                                     <select name="existing_tread[<?= $encodedKey ?>]"
@@ -96,12 +96,12 @@ ob_start();
                                         <option value="">— wybierz model —</option>
                                         <?php
                                         $renderOption = static function(array $tread, string $modelNameLc, array $seasonLabels): void {
-                                            $name        = htmlspecialchars($tread['tread'], ENT_QUOTES, 'UTF-8');
+                                            $name        = htmlspecialchars((string) ($tread['tread'] ?? ''), ENT_QUOTES, 'UTF-8');
                                             $sid         = (int) ($tread['season_id'] ?? 0);
                                             $seasonLabel = $sid && isset($seasonLabels[$sid])
                                                 ? ' [' . htmlspecialchars($seasonLabels[$sid], ENT_QUOTES, 'UTF-8') . ']'
                                                 : '';
-                                            $selected    = strtolower($tread['tread']) === $modelNameLc ? ' selected' : '';
+                                            $selected    = strtolower((string) ($tread['tread'] ?? '')) === $modelNameLc ? ' selected' : '';
                                             echo '<option value="' . (int) $tread['id'] . '"' . $selected . '>'
                                                 . $name . $seasonLabel . '</option>';
                                         };

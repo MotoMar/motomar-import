@@ -56,7 +56,7 @@ final class TireRepository
         return $this->db->select('tires_treads', ['id', 'tread', 'season_id'], [
             'producer_id' => $producerId,
             'ORDER'       => ['tread' => 'ASC'],
-        ]);
+        ]) ?? [];
     }
 
     public function treadById(int $id): ?array
@@ -92,16 +92,21 @@ final class TireRepository
     /** @return array<int, array{id: int, season: string}> */
     public function allSeasons(): array
     {
-        $rows = $this->db->select('tires_seasons', ['id', 'season'], ['id' => [1, 2, 3]]) ?? [];
+        try {
+            $rows = $this->db->select('tires_seasons', ['id', 'season'], ['id' => [1, 2, 3]]) ?? [];
 
-        if (empty($rows)) {
+            if (empty($rows)) {
+                return [];
+            }
+
+            $order = [1 => 0, 2 => 1, 3 => 2];
+            usort($rows, fn($a, $b) => ($order[$a['id']] ?? 99) <=> ($order[$b['id']] ?? 99));
+
+            return $rows;
+        } catch (\Throwable $e) {
+            error_log('TireRepository::allSeasons error: ' . $e->getMessage());
             return [];
         }
-
-        $order = [1 => 0, 2 => 1, 3 => 2];
-        usort($rows, fn($a, $b) => ($order[$a['id']] ?? 99) <=> ($order[$b['id']] ?? 99));
-
-        return $rows;
     }
 
     // ------------------------------------------------------------------ dimensions
