@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Bootstrap;
 use App\Csrf;
+use App\Domain\Import\ImportHistoryRepository;
 use App\Domain\Import\ImportSession;
 use App\Domain\Tire\ImportProcessor;
 use App\Domain\Tire\TireRepository;
