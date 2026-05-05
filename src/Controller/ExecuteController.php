@@ -109,17 +109,23 @@ final class ExecuteController
         $this->session->write($uuid, 'result', $stats);
         $this->session->setStep(5);
 
-        // Record import in history
-        $filename = basename($csvPath) ?: 'unknown.csv';
-        $this->history->recordImport(
-            $filename,
-            (int) ($stats['created'] ?? 0),
-            (int) ($stats['updated'] ?? 0),
-            (int) ($stats['skipped'] ?? 0),
-            count($stats['errors'] ?? []),
-            $stats['errors'] ?? [],
-            $options
-        );
+        // Record import in history (outside transaction)
+        try {
+            $filename = basename($csvPath) ?: 'unknown.csv';
+            $this->history->recordImport(
+                $filename,
+                (int) ($stats['created'] ?? 0),
+                (int) ($stats['updated'] ?? 0),
+                (int) ($stats['skipped'] ?? 0),
+                count($stats['errors'] ?? []),
+                $stats['errors'] ?? [],
+                $options
+            );
+        } catch (\Throwable $historyError) {
+            Bootstrap::logger()->warning('Failed to record import history', [
+                'error' => $historyError->getMessage(),
+            ]);
+        }
 
         $this->redirect('result');
     }
