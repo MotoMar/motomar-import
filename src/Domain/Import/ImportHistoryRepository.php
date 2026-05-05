@@ -23,7 +23,7 @@ final class ImportHistoryRepository
      * Record a new import in the history.
      */
     public function recordImport(
-        string $filename,
+        string $producer,
         int $created,
         int $updated,
         int $skipped,
@@ -36,7 +36,7 @@ final class ImportHistoryRepository
         $username = $this->extractUsername($userEmail);
 
         $this->db->insert('import_history', [
-            'filename'        => $filename,
+            'producer'        => $producer,
             'created_count'   => $created,
             'updated_count'   => $updated,
             'skipped_count'   => $skipped,
@@ -146,7 +146,7 @@ final class ImportHistoryRepository
         $sql = <<<SQL
             CREATE TABLE IF NOT EXISTS import_history (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                filename VARCHAR(255) NOT NULL,
+                producer VARCHAR(255) NOT NULL,
                 created_count INT NOT NULL DEFAULT 0,
                 updated_count INT NOT NULL DEFAULT 0,
                 skipped_count INT NOT NULL DEFAULT 0,

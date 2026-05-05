@@ -23,7 +23,7 @@ ob_start();
                 <label class="label">
                     <span class="label-text font-bold">Producent</span>
                 </label>
-                <p class="font-mono"><code><?= htmlspecialchars($import['filename']) ?></code></p>
+                <p class="font-mono"><code><?= htmlspecialchars($import['producer']) ?></code></p>
             </div>
             <div class="form-control">
                 <label class="label">
@@ -82,7 +82,7 @@ ob_start();
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l-2-2m0 0l-2-2m2 2l2-2m-2 2l-2 2m10-10l-2 2m0 0l-2-2m2 2l2-2m-2 2l-2 2M9 3h6a2 2 0 012 2v12a2 2 0 01-2 2H9a2 2 0 01-2-2V5a2 2 0 012-2z" />
             </svg>
-            <span>Podczas importu occurred <?= htmlspecialchars((string) count($import['error_messages'])) ?> błędów.</span>
+            <span>Podczas importu wystąpiło <?= htmlspecialchars((string) count($import['error_messages'])) ?> błędów.</span>
         </div>
 
         <div class="bg-base-200 rounded-lg p-4 max-h-96 overflow-y-auto mb-6">

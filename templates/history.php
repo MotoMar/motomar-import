@@ -67,7 +67,7 @@ ob_start();
                             <?= htmlspecialchars(date('Y-m-d H:i:s', strtotime($import['imported_at']))) ?>
                         </td>
                         <td class="text-sm">
-                            <code><?= htmlspecialchars($import['filename']) ?></code>
+                            <code><?= htmlspecialchars($import['producer']) ?></code>
                         </td>
                         <td class="text-success font-bold">
                             <?= htmlspecialchars((string) $import['created_count']) ?>
