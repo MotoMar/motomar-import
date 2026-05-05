@@ -199,8 +199,8 @@ final class ImportProcessor
         $profileId      = $this->repo->profileId($size['profile']);
         $constructionId = $this->repo->constructionId($size['construction']);
 
-        $liId = 0;
-        $siId = 0;
+        $liId = null;
+        $siId = null;
         $li   = '';
         $si   = '';
 
