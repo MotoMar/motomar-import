@@ -405,8 +405,18 @@ final class ImportProcessor
             // Generate name and slug using NameGenerator
             $nameAndSlug = $this->nameGenerator->generateWithSlug($tireRow, $classifiedParams);
 
-            // Archive old name
             $oldName = $tireRow['current_name'] ?? '';
+
+            // DEBUG: Log name generation
+            $this->logger->info("Name generation for tire {$productId}", [
+                'old_name' => $oldName,
+                'new_name' => $nameAndSlug['name'],
+                'tire_size' => $tireRow['tire_size'] ?? 'N/A',
+                'producer' => $tireRow['producer'] ?? 'N/A',
+                'tread' => $tireRow['tread'] ?? 'N/A',
+            ]);
+
+            // Archive old name
             if ($oldName !== '' && $oldName !== $nameAndSlug['name']) {
                 $this->repo->archiveOldName($productId, $oldName);
             }
