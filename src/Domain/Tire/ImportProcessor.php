@@ -129,23 +129,34 @@ final class ImportProcessor
     }
 
     /**
-     * Create multiple producers at once with name mapping.
+     * Create multiple producers at once with name mapping and classification.
      * Used when user corrects producer names before import.
      *
-     * @param array<string, string> $producerMapping CSV name => Corrected name
-     *                                               e.g. ['NEXEN' => 'Nexen Tire', 'SAILUN' => 'Sailun']
+     * @param array<string, array{name: string, classification: int}> $producerMapping
+     *        CSV name => ['name' => 'Corrected name', 'classification' => 2]
+     *        e.g. ['NEXEN' => ['name' => 'Nexen Tire', 'classification' => 2]]
      */
     public function createProducers(array $producerMapping): void
     {
-        foreach ($producerMapping as $csvName => $correctedName) {
+        foreach ($producerMapping as $csvName => $data) {
+            // Support both old format (string) and new format (array)
+            if (is_string($data)) {
+                $correctedName = $data;
+                $classification = 2; // Default: Średnia
+            } else {
+                $correctedName = $data['name'];
+                $classification = (int) ($data['classification'] ?? 2);
+            }
+
             $existing = $this->repo->producerByName($correctedName);
 
             if ($existing === null) {
                 $this->logger->info('Creating producer', [
                     'csv_name' => $csvName,
                     'corrected_name' => $correctedName,
+                    'classification' => $classification,
                 ]);
-                $this->repo->createProducer($correctedName);
+                $this->repo->createProducer($correctedName, $classification);
             }
         }
 

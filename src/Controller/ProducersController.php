@@ -43,6 +43,9 @@ final class ProducersController
             return;
         }
 
+        // Get producer classifications (ekonomiczna/średnia/premium)
+        $classifications = $repo->getProducerClassifications();
+
         // Store in session for form submission
         $_SESSION['new_producers'] = $newProducers;
 
@@ -66,14 +69,20 @@ final class ProducersController
         // Build mapping from form data
         foreach ($newProducers as $producer) {
             $csvName = $producer['name'];
-            $fieldName = 'producer_name_' . base64_encode($csvName);
-            $correctedName = trim($_POST[$fieldName] ?? '');
+            $nameField = 'producer_name_' . base64_encode($csvName);
+            $classField = 'producer_class_' . base64_encode($csvName);
+
+            $correctedName = trim($_POST[$nameField] ?? '');
+            $classification = (int) ($_POST[$classField] ?? 2); // Default: Średnia
 
             if ($correctedName === '') {
                 $correctedName = $csvName;
             }
 
-            $producerMapping[$csvName] = $correctedName;
+            $producerMapping[$csvName] = [
+                'name' => $correctedName,
+                'classification' => $classification,
+            ];
         }
 
         // Create producers with corrected names

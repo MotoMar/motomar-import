@@ -28,10 +28,12 @@
         .producer-name { font-size: 18px; font-weight: 600; color: #333; }
         .producer-count { background: #007bff; color: white; padding: 4px 12px; border-radius: 12px; font-size: 13px; font-weight: 600; }
 
-        .form-group { margin-bottom: 0; }
+        .form-group { margin-bottom: 15px; }
+        .form-group:last-child { margin-bottom: 0; }
         label { display: block; font-size: 13px; font-weight: 600; color: #666; margin-bottom: 6px; }
-        input[type="text"] { width: 100%; padding: 10px 14px; border: 2px solid #dee2e6; border-radius: 6px; font-size: 15px; transition: border-color 0.2s; }
-        input[type="text"]:focus { outline: none; border-color: #007bff; }
+        input[type="text"], select { width: 100%; padding: 10px 14px; border: 2px solid #dee2e6; border-radius: 6px; font-size: 15px; transition: border-color 0.2s; }
+        input[type="text"]:focus, select:focus { outline: none; border-color: #007bff; }
+        select { background: white; cursor: pointer; }
 
         .help-text { font-size: 12px; color: #6c757d; margin-top: 6px; font-style: italic; }
 
@@ -109,6 +111,26 @@
                             />
                             <div class="help-text">
                                 💡 Nazwa z cennika: <strong><?= htmlspecialchars($producer['name']) ?></strong>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Kategoria produktu:</label>
+                            <select
+                                name="producer_category_<?= base64_encode($producer['name']) ?>"
+                                required
+                            >
+                                <?php foreach ($categories as $category): ?>
+                                    <option
+                                        value="<?= $category['id'] ?>"
+                                        <?= $category['id'] === 1 ? 'selected' : '' ?>
+                                    >
+                                        <?= htmlspecialchars($category['name']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <div class="help-text">
+                                💡 Domyślnie: <strong>Opony</strong> (zmień jeśli producent robi też akumulatory)
                             </div>
                         </div>
                     </div>

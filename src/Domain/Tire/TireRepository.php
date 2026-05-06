@@ -37,15 +37,31 @@ final class TireRepository
         ]) ?: null;
     }
 
-    public function createProducer(string $name): array
+    public function createProducer(string $name, int $classification = 2): array
     {
         $slug = self::slug($name);
         $this->db->insert('products_producers', [
             'producer' => $name,
             'slug'     => $slug,
+            'id_product_category' => 1, // Always tires for import
+            'classification' => $classification,
         ]);
         $id = (int) $this->db->id();
-        return ['id' => $id, 'producer' => $name, 'slug' => $slug];
+        return ['id' => $id, 'producer' => $name, 'slug' => $slug, 'classification' => $classification];
+    }
+
+    /**
+     * Get producer classification options (ekonomiczna/średnia/premium)
+     *
+     * @return array<int, array{id: int, name: string}>
+     */
+    public function getProducerClassifications(): array
+    {
+        return [
+            ['id' => 1, 'name' => 'Ekonomiczna'],
+            ['id' => 2, 'name' => 'Średnia'],
+            ['id' => 3, 'name' => 'Premium'],
+        ];
     }
 
     // ------------------------------------------------------------------ treads
