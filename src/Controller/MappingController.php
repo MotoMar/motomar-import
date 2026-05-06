@@ -49,9 +49,16 @@ final class MappingController
             'models_keys' => array_keys($models),
         ]);
 
-        // Load treads only for producers that appear in this CSV — not all 100+ producers
+        // First, create any new producers that don't exist yet
         $producerNamesInCsv = array_unique(array_column(array_values($models), 'producer_name'));
+        foreach ($producerNamesInCsv as $name) {
+            if ($this->repo->producerByName($name) === null) {
+                $this->repo->createProducer($name);
+                Bootstrap::logger()->info('Created producer during mapping show', ['name' => $name, 'uuid' => $uuid]);
+            }
+        }
 
+        // Now load treads for all producers (they should all exist now)
         $treadsByProducer = [];
         foreach ($producerNamesInCsv as $name) {
             $treadsByProducer[$name] = []; // Initialize with empty array for all producers

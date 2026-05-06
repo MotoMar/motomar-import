@@ -184,6 +184,12 @@ final class ImportProcessor
 
         $this->repo->updateTireEanRef($tireId, $row->ean, $row->ref2);
         $this->repo->updateProductName($tireId, $this->buildName($row, $producer));
+
+        // For existing products, also update name based on classified parameters if they were updated
+        if ($this->options['update_inne'] && $row->extra !== '') {
+            $this->updateProductNameWithClassifiedParams($tireId, $row, $producer);
+        }
+
         ComarchQueue::addProduct($tireId);
     }
 
@@ -259,6 +265,9 @@ final class ImportProcessor
         if ($row->extra !== '') {
             $this->repo->createTireParameters($productId, $row->extra, $vehicleTypeId);
         }
+
+        // Generate proper name based on classified parameters
+        $this->updateProductNameWithClassifiedParams($productId, $row, $producer);
 
         ComarchQueue::addProduct($productId);
     }
@@ -413,5 +422,140 @@ final class ImportProcessor
                 ], ['id' => $tireId]);
             }
         }
+    }
+
+    private function updateProductNameWithClassifiedParams(int $productId, TireRow $row, array $producer): void
+    {
+        // Get classified parameters from database
+        $classifiedJson = Bootstrap::db()->get('tires_classified_parameters', 'parameters', ['id_tire' => $productId]);
+        if ($classifiedJson === null) {
+            return; // No classified parameters, keep original name
+        }
+
+        $classified = TireParametersBuilder::fromJson($classifiedJson);
+        if (empty($classified)) {
+            return; // Empty parameters, keep original name
+        }
+
+        // Build tireRow-like data for name generation
+        $tireRow = [
+            'producer'     => $producer['producer'],
+            'tread'        => $row->modelName,
+            'tire_size'    => $row->size,
+            'tire_li'      => $row->indices !== '' ? explode('/', $row->indices)[0] : '',
+            'tire_si'      => $row->indices !== '' ? explode('/', $row->indices)[1] ?? '' : '',
+            'id_vehicles_type' => Bootstrap::config()['vehicle_type_shortcuts'][$row->vehicleTypeShortcut] ?? 1,
+            'reinforcement' => null, // Will be resolved from classified parameters
+        ];
+
+        // Generate name using similar logic to main system
+        $name = $this->generateNameFromClassifiedParams($tireRow, $classified);
+
+        if ($name !== '') {
+            $this->repo->updateProductName($productId, $name);
+        }
+    }
+
+    private function generateNameFromClassifiedParams(array $tireRow, array $classified): string
+    {
+        $parts = [];
+
+        // 1. Producer
+        $producer = trim((string) ($tireRow['producer'] ?? ''));
+        if ('' !== $producer) {
+            $parts[] = $producer;
+        }
+
+        // 2. Tread (model name)
+        $tread = trim((string) ($tireRow['tread'] ?? ''));
+        if ('' !== $tread) {
+            $parts[] = $tread;
+        }
+
+        // 3. Size + reinforcement (if applicable)
+        $size = trim((string) ($tireRow['tire_size'] ?? ''));
+        $reinforcement = $this->resolveReinforcementFromClassified($classified);
+
+        if ('' !== $size) {
+            $parts[] = \in_array($reinforcement, ['C', 'CP'], true)
+                ? "{$size}{$reinforcement}"
+                : $size;
+        }
+
+        // 4. LI/SI formatted
+        $li = trim((string) ($tireRow['tire_li'] ?? ''));
+        $si = trim((string) ($tireRow['tire_si'] ?? ''));
+        $lisi = $this->formatLiSi($li, $si);
+        if ('' !== $lisi) {
+            $parts[] = $lisi;
+        }
+
+        // 5. Suffixes from classified parameters
+        $vehicleType = (int) ($tireRow['id_vehicles_type'] ?? 1);
+        $suffixes = $this->extractSuffixes($vehicleType, $classified);
+        foreach ($suffixes as $suffix) {
+            $suffix = trim((string) $suffix);
+            if ('' !== $suffix) {
+                $parts[] = $suffix;
+            }
+        }
+
+        // Assemble with single spaces
+        $name = implode(' ', $parts);
+        $name = preg_replace('/\s{2,}/', ' ', $name);
+
+        return trim($name);
+    }
+
+    private function resolveReinforcementFromClassified(array $classified): string
+    {
+        $reinforcements = $classified['reinforcement'] ?? [];
+        if (empty($reinforcements)) {
+            return '';
+        }
+
+        // Pick strongest: C < CP < RF < XL
+        $priority = ['C' => 1, 'CP' => 2, 'RF' => 3, 'XL' => 4];
+        $best = '';
+        $bestPriority = 0;
+
+        foreach ($reinforcements as $code) {
+            $code = trim((string) $code);
+            $p = $priority[$code] ?? 0;
+            if ($p > $bestPriority) {
+                $best = $code;
+                $bestPriority = $p;
+            }
+        }
+
+        return $best;
+    }
+
+    private function formatLiSi(string $li, string $si): string
+    {
+        $li = trim($li);
+        $si = trim($si);
+
+        if ('' === $li && '' === $si) {
+            return '';
+        }
+
+        return $li . '/' . $si;
+    }
+
+    private function extractSuffixes(int $vehicleType, array $classified): array
+    {
+        // Simplified suffix extraction - in full system this uses SuffixExtractor
+        $suffixes = [];
+
+        // Add runflat if present
+        if (!empty($classified['runflat'] ?? [])) {
+            $suffixes[] = implode(' ', $classified['runflat']);
+        }
+
+        // Add other common suffixes based on vehicle type
+        // This is a simplified version - full system has more complex logic
+
+        return $suffixes;
     }
 }

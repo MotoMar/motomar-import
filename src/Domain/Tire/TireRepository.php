@@ -430,7 +430,7 @@ final class TireRepository
         $classified = $this->classifyTireParameters($productId, $data);
         $this->db->insert('tires_classified_parameters', [
             'id_tire'    => $productId,
-            'parameters' => json_encode($classified, JSON_UNESCAPED_UNICODE),
+            'parameters' => TireParametersBuilder::toJson($classified),
         ]);
 
         // Create price group entries
