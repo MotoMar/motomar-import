@@ -23,50 +23,71 @@ final class ProducersController
      */
     public function show(): void
     {
-        $logger = Bootstrap::logger();
-        $csvPath = $this->session->getCsvPath();
+        try {
+            $logger = Bootstrap::logger();
+            $csvPath = $this->session->getCsvPath();
 
-        $logger->info('ProducersController::show - Start', [
-            'uuid' => $this->session->uuid(),
-            'csvPath' => $csvPath,
-        ]);
+            $logger->info('ProducersController::show - Start', [
+                'uuid' => $this->session->uuid(),
+                'csvPath' => $csvPath,
+            ]);
 
-        if ($csvPath === null) {
-            $logger->warning('ProducersController::show - No CSV path, redirecting to home');
-            $this->redirect('');
-            return;
+            if ($csvPath === null) {
+                $logger->warning('ProducersController::show - No CSV path, redirecting to home');
+                $this->redirect('');
+                return;
+            }
+
+            $repo = Bootstrap::tireRepository();
+            $processor = new ImportProcessor($repo, $logger);
+
+            // Detect new producers
+            $newProducers = $processor->detectNewProducers($csvPath);
+
+            $logger->info('ProducersController::show - New producers detected', [
+                'count' => count($newProducers),
+                'producers' => array_column($newProducers, 'name'),
+            ]);
+
+            // If no new producers, skip to mapping
+            if (empty($newProducers)) {
+                $logger->info('ProducersController::show - No new producers, redirecting to mapping');
+                $this->redirect('mapping');
+                return;
+            }
+
+            // Get producer classifications (ekonomiczna/średnia/premium)
+            $classifications = $repo->getProducerClassifications();
+
+            // Store in session for form submission
+            $_SESSION['new_producers'] = $newProducers;
+
+            $logger->info('ProducersController::show - Rendering form', [
+                'new_producers_count' => count($newProducers),
+            ]);
+
+            // Render form
+            require dirname(__DIR__, 2) . '/templates/step2a.php';
+
+        } catch (\Throwable $e) {
+            http_response_code(500);
+            echo '<h1>Błąd 500</h1>';
+            echo '<pre>';
+            echo 'Komunikat: ' . htmlspecialchars($e->getMessage()) . "\n\n";
+            echo 'Plik: ' . htmlspecialchars($e->getFile()) . ':' . $e->getLine() . "\n\n";
+            echo 'Stack trace:' . "\n" . htmlspecialchars($e->getTraceAsString());
+            echo '</pre>';
+
+            if (isset($logger)) {
+                $logger->error('ProducersController::show failed', [
+                    'error' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+            }
+            exit;
         }
-
-        $repo = Bootstrap::tireRepository();
-        $processor = new ImportProcessor($repo, $logger);
-
-        // Detect new producers
-        $newProducers = $processor->detectNewProducers($csvPath);
-
-        $logger->info('ProducersController::show - New producers detected', [
-            'count' => count($newProducers),
-            'producers' => array_column($newProducers, 'name'),
-        ]);
-
-        // If no new producers, skip to mapping
-        if (empty($newProducers)) {
-            $logger->info('ProducersController::show - No new producers, redirecting to mapping');
-            $this->redirect('mapping');
-            return;
-        }
-
-        // Get producer classifications (ekonomiczna/średnia/premium)
-        $classifications = $repo->getProducerClassifications();
-
-        // Store in session for form submission
-        $_SESSION['new_producers'] = $newProducers;
-
-        $logger->info('ProducersController::show - Rendering form', [
-            'new_producers_count' => count($newProducers),
-        ]);
-
-        // Render form
-        require dirname(__DIR__, 2) . '/templates/step2a.php';
     }
 
     /**
