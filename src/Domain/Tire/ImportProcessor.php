@@ -121,10 +121,16 @@ final class ImportProcessor
     {
         $producer = $this->repo->producerByName($row->producerName);
 
+        // Auto-create producer if not exists
         if ($producer === null) {
-            ++$this->stats['skipped'];
-            $this->logger->debug('Producer not found, skipping', ['producer' => $row->producerName]);
-            return;
+            if ($row->producerName === '') {
+                ++$this->stats['skipped'];
+                $this->logger->debug('Empty producer name, skipping');
+                return;
+            }
+
+            $this->logger->info('Creating new producer', ['producer' => $row->producerName]);
+            $producer = $this->repo->createProducer($row->producerName);
         }
 
         $entry = $mapping[$row->mappingKey()] ?? null;
