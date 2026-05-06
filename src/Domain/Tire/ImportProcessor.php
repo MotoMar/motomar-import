@@ -253,12 +253,6 @@ final class ImportProcessor
 
     private function update(int $tireId, TireRow $row, array $producer): void
     {
-        $this->logger->info("UPDATE: Processing tire {$tireId}", [
-            'ean' => $row->ean,
-            'producer' => $producer['producer'],
-            'model' => $row->modelName,
-        ]);
-
         // Check flag_extraoffer before updating price (don't update for special offers/leżaki)
         if ($this->options['update_price'] && $row->hasValidPrice()) {
             $product = $this->repo->getProductById($tireId);
@@ -307,12 +301,6 @@ final class ImportProcessor
 
     private function create(TireRow $row, array $producer, int $treadId, int $seasonId): void
     {
-        $this->logger->info("CREATE: Creating new tire", [
-            'ean' => $row->ean,
-            'producer' => $producer['producer'],
-            'model' => $row->modelName,
-        ]);
-
         $size = SizeParser::parseSize($row->size);
 
         if ($size === null) {
@@ -417,18 +405,8 @@ final class ImportProcessor
             // Generate name and slug using NameGenerator
             $nameAndSlug = $this->nameGenerator->generateWithSlug($tireRow, $classifiedParams);
 
-            $oldName = $tireRow['current_name'] ?? '';
-
-            // DEBUG: Log name generation
-            $this->logger->info("Name generation for tire {$productId}", [
-                'old_name' => $oldName,
-                'new_name' => $nameAndSlug['name'],
-                'tire_size' => $tireRow['tire_size'] ?? 'N/A',
-                'producer' => $tireRow['producer'] ?? 'N/A',
-                'tread' => $tireRow['tread'] ?? 'N/A',
-            ]);
-
             // Archive old name
+            $oldName = $tireRow['current_name'] ?? '';
             if ($oldName !== '' && $oldName !== $nameAndSlug['name']) {
                 $this->repo->archiveOldName($productId, $oldName);
             }
