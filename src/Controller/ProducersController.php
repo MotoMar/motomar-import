@@ -23,22 +23,34 @@ final class ProducersController
      */
     public function show(): void
     {
+        $logger = Bootstrap::logger();
         $csvPath = $this->session->getCsvPath();
 
+        $logger->info('ProducersController::show - Start', [
+            'uuid' => $this->session->uuid(),
+            'csvPath' => $csvPath,
+        ]);
+
         if ($csvPath === null) {
+            $logger->warning('ProducersController::show - No CSV path, redirecting to home');
             $this->redirect('');
             return;
         }
 
         $repo = Bootstrap::tireRepository();
-        $logger = Bootstrap::logger();
         $processor = new ImportProcessor($repo, $logger);
 
         // Detect new producers
         $newProducers = $processor->detectNewProducers($csvPath);
 
+        $logger->info('ProducersController::show - New producers detected', [
+            'count' => count($newProducers),
+            'producers' => array_column($newProducers, 'name'),
+        ]);
+
         // If no new producers, skip to mapping
         if (empty($newProducers)) {
+            $logger->info('ProducersController::show - No new producers, redirecting to mapping');
             $this->redirect('mapping');
             return;
         }
@@ -48,6 +60,10 @@ final class ProducersController
 
         // Store in session for form submission
         $_SESSION['new_producers'] = $newProducers;
+
+        $logger->info('ProducersController::show - Rendering form', [
+            'new_producers_count' => count($newProducers),
+        ]);
 
         // Render form
         require dirname(__DIR__, 2) . '/templates/step2a.php';
