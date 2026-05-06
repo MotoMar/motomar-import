@@ -472,22 +472,25 @@ final class ImportProcessor
             $parts[] = $tread;
         }
 
-        // 3. Size components + reinforcement (if applicable)
+        // 3. Size + reinforcement (if applicable)
         $size = trim((string) ($tireRow['tire_size'] ?? ''));
         if ('' !== $size) {
             $parsedSize = SizeParser::parseSize($size);
             if ($parsedSize !== null) {
                 $reinforcement = $this->resolveReinforcementFromClassified($classified);
 
-                // Add size components separately for proper slug generation
-                $parts[] = $parsedSize['width'];
-                $parts[] = $parsedSize['profile'];
-                // Extract construction letter (R, D, etc.) and diameter separately
+                // Format size as width/profile construction diameter
+                $formattedSize = $parsedSize['width'] . '/' . $parsedSize['profile'];
+                if ($parsedSize['profile'] === '0') {
+                    // For sizes without profile, don't include the /0
+                    $formattedSize = $parsedSize['width'];
+                }
                 $constructionParts = explode(' ', $parsedSize['construction']);
-                $parts[] = strtolower($constructionParts[0] ?? 'r'); // Default to 'r' if parsing fails
-                $parts[] = $parsedSize['diameter'];
+                $formattedSize .= ' ' . $constructionParts[0] . ' ' . $parsedSize['diameter'];
 
-                // Add reinforcement if applicable (but not as part of size for slug)
+                $parts[] = $formattedSize;
+
+                // Add reinforcement if applicable
                 if ($reinforcement !== '' && !\in_array($reinforcement, ['C', 'CP'], true)) {
                     $parts[] = $reinforcement;
                 }
@@ -555,6 +558,12 @@ final class ImportProcessor
             return '';
         }
 
+        // For single indices like "104V", don't add slash
+        if (strpos($li, '/') === false) {
+            return $li . $si;
+        }
+
+        // For dual indices like "91/89H", keep the slash
         return $li . '/' . $si;
     }
 
