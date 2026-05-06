@@ -82,6 +82,11 @@ final class Bootstrap
         return self::$config;
     }
 
+    public static function tireRepository(): \App\Domain\Tire\TireRepository
+    {
+        return new \App\Domain\Tire\TireRepository();
+    }
+
     private static function loadEnv(string $path): void
     {
         if (!is_file($path)) {
