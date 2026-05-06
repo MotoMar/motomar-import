@@ -472,14 +472,29 @@ final class ImportProcessor
             $parts[] = $tread;
         }
 
-        // 3. Size + reinforcement (if applicable)
+        // 3. Size components + reinforcement (if applicable)
         $size = trim((string) ($tireRow['tire_size'] ?? ''));
-        $reinforcement = $this->resolveReinforcementFromClassified($classified);
-
         if ('' !== $size) {
-            $parts[] = \in_array($reinforcement, ['C', 'CP'], true)
-                ? "{$size}{$reinforcement}"
-                : $size;
+            $parsedSize = SizeParser::parseSize($size);
+            if ($parsedSize !== null) {
+                $reinforcement = $this->resolveReinforcementFromClassified($classified);
+
+                // Add size components separately for proper slug generation
+                $parts[] = $parsedSize['width'];
+                $parts[] = $parsedSize['profile'];
+                // Extract construction letter (R, D, etc.) and diameter separately
+                $constructionParts = explode(' ', $parsedSize['construction']);
+                $parts[] = strtolower($constructionParts[0] ?? 'r'); // Default to 'r' if parsing fails
+                $parts[] = $parsedSize['diameter'];
+
+                // Add reinforcement if applicable (but not as part of size for slug)
+                if ($reinforcement !== '' && !\in_array($reinforcement, ['C', 'CP'], true)) {
+                    $parts[] = $reinforcement;
+                }
+            } else {
+                // Fallback to full size if parsing fails
+                $parts[] = $size;
+            }
         }
 
         // 4. LI/SI formatted

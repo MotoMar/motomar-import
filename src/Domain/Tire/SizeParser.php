@@ -8,7 +8,7 @@ final class SizeParser
 {
     /**
      * Parses tire size string into components.
-     * Handles: 145/70R13, 205/55R16, 195R14C, 185/60R15 88H XL
+     * Handles: 145/70R13, 205/55R16, 195R14C, 185/60R15 88H XL, 7.50R16
      *
      * @return array{width: string, profile: string, construction: string, diameter: string}|null
      */
@@ -30,6 +30,16 @@ final class SizeParser
         if (preg_match('/^(\d+)([A-Z]+)(\d+)/', $size, $m)) {
             return [
                 'width'        => $m[1],
+                'profile'      => '0',
+                'construction' => $m[2] . ' ' . $m[3],
+                'diameter'     => $m[3],
+            ];
+        }
+
+        // Decimal width without profile: 7.50R16
+        if (preg_match('/^(\d+\.\d+)([A-Z]+)(\d+)/', $size, $m)) {
+            return [
+                'width'        => str_replace('.', '', $m[1]), // Convert 7.50 to 750
                 'profile'      => '0',
                 'construction' => $m[2] . ' ' . $m[3],
                 'diameter'     => $m[3],
