@@ -75,6 +75,23 @@ final class ImportSession
         return $this->importDir($uuid) . '/original.csv';
     }
 
+    /**
+     * Get CSV path for current session UUID.
+     * Returns null if no active session.
+     */
+    public function getCsvPath(): ?string
+    {
+        $uuid = $this->uuid();
+
+        if ($uuid === null) {
+            return null;
+        }
+
+        $path = $this->csvPath($uuid);
+
+        return is_file($path) ? $path : null;
+    }
+
     public function write(string $uuid, string $key, mixed $data): void
     {
         if (!in_array($key, self::ALLOWED_KEYS, true)) {
