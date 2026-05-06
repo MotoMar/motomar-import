@@ -115,22 +115,22 @@
                         </div>
 
                         <div class="form-group">
-                            <label>Kategoria produktu:</label>
+                            <label>Klasa producenta:</label>
                             <select
-                                name="producer_category_<?= base64_encode($producer['name']) ?>"
+                                name="producer_class_<?= base64_encode($producer['name']) ?>"
                                 required
                             >
-                                <?php foreach ($categories as $category): ?>
+                                <?php foreach ($classifications as $classification): ?>
                                     <option
-                                        value="<?= $category['id'] ?>"
-                                        <?= $category['id'] === 1 ? 'selected' : '' ?>
+                                        value="<?= $classification['id'] ?>"
+                                        <?= $classification['id'] === 2 ? 'selected' : '' ?>
                                     >
-                                        <?= htmlspecialchars($category['name']) ?>
+                                        <?= htmlspecialchars($classification['name']) ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
                             <div class="help-text">
-                                💡 Domyślnie: <strong>Opony</strong> (zmień jeśli producent robi też akumulatory)
+                                💡 Domyślnie: <strong>Średnia</strong> (wybierz Ekonomiczna/Średnia/Premium)
                             </div>
                         </div>
                     </div>
