@@ -200,19 +200,6 @@ final class TireRepository
 
     // ------------------------------------------------------------------ product updates
 
-    public function updateProductPrice(int $productId, float $price): void
-    {
-        $this->db->update('products', ['price_catalog_netto' => $price], ['id' => $productId]);
-
-        // Keep price groups in sync (discount = 0, price = ceiling of catalog price)
-        $ceiledPrice = (float) ceil($price);
-        $this->db->update(
-            'products_price_groups',
-            ['price_netto' => $ceiledPrice, 'discount' => 0],
-            ['id_product' => $productId]
-        );
-    }
-
     public function updateProductCatalogPrice(int $productId, float $price): void
     {
         $this->db->update('products', ['price_catalog_netto' => $price], ['id' => $productId]);
@@ -321,16 +308,6 @@ final class TireRepository
         if (!empty($fields)) {
             $this->db->update('tires', $fields, ['id' => $tireId]);
         }
-    }
-
-    public function updateProductName(int $productId, string $name): void
-    {
-        $slug = self::slug($name . '-' . $productId);
-        $this->db->update('products', [
-            'name'        => $name,
-            'slug'        => $slug,
-            'better_slug' => $slug,
-        ], ['id' => $productId]);
     }
 
     public function updateProductNameAndSlug(int $productId, string $name, string $slug): void

@@ -27,16 +27,13 @@ class NameGenerator
     private SuffixExtractor $suffixExtractor;
 
     /**
-     * Reinforcement values that are placed before LI/SI (embedded in size block).
-     */
-    private const SIZE_EMBEDDED_REINFORCEMENTS = ['C', 'CP'];
-
-    /**
      * Mapping from Propel integer index → string for the `reinforcement` ENUM.
      *
      * Schema: ENUM('C','CP','RF','XL') — stored as tinyint unsigned 1–4.
      * Used only as a last-resort fallback when classified parameters are empty
      * and the integer column is the only source available.
+     *
+     * Maps database integer values to reinforcement codes in priority order.
      */
     private const REINFORCEMENT_INT_MAP = [
         1 => 'C',
@@ -87,7 +84,7 @@ class NameGenerator
         $reinforcement = $this->resolveReinforcement($tireRow, $classifiedParameters);
 
         if ('' !== $size) {
-            $parts[] = \in_array($reinforcement, self::SIZE_EMBEDDED_REINFORCEMENTS, true)
+            $parts[] = ReinforcementHelper::isEmbeddedInSize($reinforcement)
                 ? "{$size}{$reinforcement}"
                 : $size;
         }
@@ -136,33 +133,6 @@ class NameGenerator
         ];
     }
 
-    /**
-     * Generate names for a batch of tires.
-     *
-     * @param array[]                             $tireRows            Array of tire data rows
-     * @param array<int, array<string, string[]>> $allClassifiedParams Classified parameters keyed by tire_id
-     *
-     * @return array[] Array of ['id' => int, 'name' => string, 'slug' => string]
-     */
-    public function generateBatch(array $tireRows, array $allClassifiedParams = []): array
-    {
-        $results = [];
-
-        foreach ($tireRows as $tireRow) {
-            $tireId = (int) ($tireRow['tire_id'] ?? 0);
-            $classifiedParameters = $allClassifiedParams[$tireId] ?? [];
-
-            $nameAndSlug = $this->generateWithSlug($tireRow, $classifiedParameters);
-
-            $results[] = [
-                'id'   => $tireId,
-                'name' => $nameAndSlug['name'],
-                'slug' => $nameAndSlug['slug'],
-            ];
-        }
-
-        return $results;
-    }
 
     /**
      * Resolve the reinforcement value for size-block embedding (C/CP).
@@ -184,7 +154,7 @@ class NameGenerator
         $reinforcements = $classifiedParameters['reinforcement'] ?? [];
 
         if (!empty($reinforcements)) {
-            return $this->pickStrongestReinforcement($reinforcements);
+            return ReinforcementHelper::pickStrongest($reinforcements);
         }
 
         // 2. Fallback: integer reinforcement column (Propel ENUM index)
@@ -199,44 +169,4 @@ class NameGenerator
         return self::REINFORCEMENT_INT_MAP[$intVal] ?? '';
     }
 
-    /**
-     * Pick the strongest reinforcement code from a list.
-     *
-     * Priority: C < CP < RF < XL (higher index wins).
-     *
-     * When only a single value is present it is returned as-is.
-     * When multiple values are present (e.g. import produced "C, XL"),
-     * the strongest wins.
-     *
-     * @param string[] $codes Reinforcement code strings
-     *
-     * @return string The resolved single reinforcement code
-     */
-    private function pickStrongestReinforcement(array $codes): string
-    {
-        if (1 === \count($codes)) {
-            return trim($codes[0]);
-        }
-
-        $priority = array_flip(self::REINFORCEMENT_INT_MAP);
-        $best = null;
-        $bestPriority = -1;
-
-        foreach ($codes as $code) {
-            $code = trim($code);
-
-            if ('' === $code) {
-                continue;
-            }
-
-            $p = $priority[$code] ?? -1;
-
-            if ($p > $bestPriority) {
-                $best = $code;
-                $bestPriority = $p;
-            }
-        }
-
-        return $best ?? trim($codes[0]);
-    }
 }

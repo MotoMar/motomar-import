@@ -72,11 +72,12 @@ final class ExecuteController
         }
 
         $options = [
-            'update_price'     => !empty($_POST['update_price']),
+            'update_price'     => false, // Never update product prices - catalog prices are updated via update_pricing
             'update_labels'    => !empty($_POST['update_labels']),
             'update_inne'      => !empty($_POST['update_inne']),
             'update_structure' => !empty($_POST['update_structure']),
             'update_pricing'   => !empty($_POST['update_pricing']),
+            'update_ref'       => !empty($_POST['update_ref']),
         ];
 
         Bootstrap::logger()->info('Import started', ['uuid' => $uuid, 'options' => $options]);

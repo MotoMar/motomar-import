@@ -38,11 +38,6 @@ namespace App\Domain\Tire;
 class TireParametersBuilder
 {
     /**
-     * Reinforcement priority for normalization (higher index = stronger).
-     */
-    private const array REINFORCEMENT_PRIORITY = ['C', 'CP', 'RF', 'XL'];
-
-    /**
      * Build the parameters array for a single tire.
      *
      * Parses tokens from `tires.other` (`;` separated), matches each token
@@ -79,25 +74,6 @@ class TireParametersBuilder
         return $this->cleanResult($result);
     }
 
-    /**
-     * Build parameters for multiple tires at once (batch).
-     *
-     * @param array<int, array<string, mixed>> $tireRows Tire data rows indexed by tire_id
-     * @param DictionaryMatcher                $matcher  Dictionary matcher instance
-     *
-     * @return array<int, array<string, string[]>> Parameters indexed by tire_id
-     */
-    public function buildParametersBatch(array $tireRows, DictionaryMatcher $matcher): array
-    {
-        $result = [];
-
-        foreach ($tireRows as $tireRow) {
-            $tireId = (int) ($tireRow['tire_id'] ?? 0);
-            $result[$tireId] = $this->buildParameters($tireRow, $matcher);
-        }
-
-        return $result;
-    }
 
     /**
      * Parse the `other` column into individual trimmed tokens.
@@ -145,7 +121,7 @@ class TireParametersBuilder
     private function normalizeResult(array $result): array
     {
         if (isset($result['reinforcement']) && \count($result['reinforcement']) > 1) {
-            $result['reinforcement'] = [$this->pickStrongestReinforcement($result['reinforcement'])];
+            $result['reinforcement'] = [ReinforcementHelper::pickStrongest($result['reinforcement'])];
         }
 
         if (isset($result['tube_type']) && !empty($result['tube_type'])) {
@@ -153,39 +129,6 @@ class TireParametersBuilder
         }
 
         return $result;
-    }
-
-    /**
-     * Pick the strongest reinforcement code from a list.
-     *
-     * Priority: C < CP < RF < XL
-     *
-     * @param string[] $codes Reinforcement codes
-     *
-     * @return string The strongest code
-     */
-    private function pickStrongestReinforcement(array $codes): string
-    {
-        $priority = array_flip(self::REINFORCEMENT_PRIORITY);
-        $best = null;
-        $bestPriority = -1;
-
-        foreach ($codes as $code) {
-            $code = trim($code);
-
-            if ('' === $code) {
-                continue;
-            }
-
-            $p = $priority[$code] ?? -1;
-
-            if ($p > $bestPriority) {
-                $best = $code;
-                $bestPriority = $p;
-            }
-        }
-
-        return $best ?? $codes[0];
     }
 
     /**
@@ -264,29 +207,7 @@ class TireParametersBuilder
         return $buckets;
     }
 
-    /**
-     * Get the suffix order for a given vehicle type.
-     *
-     * Delegates to {@see VehicleTypeClassificationOrder::forVehicleType()}.
-     *
-     * @param int $vehicleType Vehicle type ID (1–10)
-     *
-     * @return string[] Array of dictionary kind names in order
-     */
-    public function getSuffixOrder(int $vehicleType): array
-    {
-        return VehicleTypeClassificationOrder::forVehicleType($vehicleType);
-    }
 
-    /**
-     * Get all supported vehicle type IDs.
-     *
-     * @return int[] Array of vehicle type IDs (1–10)
-     */
-    public function getSupportedVehicleTypes(): array
-    {
-        return VehicleTypeClassificationOrder::supportedTypes();
-    }
 
     /**
      * Upsert classified parameters for a single tire into tires_classified_parameters.

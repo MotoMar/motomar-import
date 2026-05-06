@@ -24,15 +24,6 @@ namespace App\Domain\Tire;
 class SuffixExtractor
 {
     /**
-     * Reinforcement values embedded in the size block, not emitted as suffixes.
-     *
-     * These are handled by NameGenerator::resolveReinforcement() and appended
-     * directly to the tire size string. Emitting them again as suffixes would
-     * produce duplicates like "195/70R15C ... C".
-     */
-    private const SIZE_EMBEDDED_REINFORCEMENTS = ['C', 'CP'];
-
-    /**
      * Extract ordered suffix strings for a tire product name.
      *
      * @param int                     $vehicleType          Vehicle type ID (1–10)
@@ -69,7 +60,7 @@ class SuffixExtractor
                 }
 
                 // C and CP are part of the size block, not suffixes.
-                if ('reinforcement' === $kind && \in_array($value, self::SIZE_EMBEDDED_REINFORCEMENTS, true)) {
+                if ('reinforcement' === $kind && ReinforcementHelper::isEmbeddedInSize($value)) {
                     continue;
                 }
 
@@ -80,30 +71,5 @@ class SuffixExtractor
         return $result;
     }
 
-    /**
-     * Get the suffix order for a given vehicle type.
-     *
-     * Delegates to {@see VehicleTypeSuffixOrder::forVehicleType()}.
-     * Kept for backward compatibility and convenience in tests/debugging.
-     *
-     * @param int $vehicleType Vehicle type ID (1–10)
-     *
-     * @return string[] Array of dictionary kind names in order, or empty array if unknown type
-     */
-    public function getSuffixOrder(int $vehicleType): array
-    {
-        return VehicleTypeSuffixOrder::forVehicleType($vehicleType);
-    }
 
-    /**
-     * Get all supported vehicle type IDs.
-     *
-     * Delegates to {@see VehicleTypeSuffixOrder::supportedTypes()}.
-     *
-     * @return int[] Array of vehicle type IDs (1–10)
-     */
-    public function getSupportedVehicleTypes(): array
-    {
-        return VehicleTypeSuffixOrder::supportedTypes();
-    }
 }

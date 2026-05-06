@@ -50,9 +50,7 @@ class TireDataFetcher
             tw.width,
             IF(tpr.profile IS NOT NULL AND tpr.profile != \'\', CONCAT(\'/\', tpr.profile), \'\'),
             \' \',
-            tc.construction,
-            \' \',
-            t.tire_diameter
+            tc.construction
         ) AS tire_size,
         tl.code AS tire_li,
         ts.code AS tire_si,
@@ -188,36 +186,6 @@ class TireDataFetcher
     }
 
     /**
-     * Fetch multiple tires by their IDs.
-     *
-     * @param int[] $tireIds array of tire/product IDs
-     *
-     * @return array<int, array<string, mixed>> array of tire data rows indexed by tire_id
-     */
-    public function fetchTiresByIds(array $tireIds): array
-    {
-        if (empty($tireIds)) {
-            return [];
-        }
-
-        $tireIds = array_values(array_unique(array_map('intval', $tireIds)));
-
-        $placeholders = implode(',', array_fill(0, count($tireIds), '?'));
-        $sql = 'SELECT '.self::BASE_SELECT.self::BASE_FROM
-             ." WHERE t.id IN ({$placeholders}) ORDER BY t.id";
-
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($tireIds);
-
-        $result = [];
-        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $result[(int) $row['tire_id']] = $row;
-        }
-
-        return $result;
-    }
-
-    /**
      * Decode the classified parameters JSON from a tire data row.
      *
      * Convenience method that extracts and decodes the `classified_parameters_json`
@@ -233,55 +201,4 @@ class TireDataFetcher
         return TireParametersBuilder::fromJson($tireRow['classified_parameters_json'] ?? null);
     }
 
-    /**
-     * Count tires grouped by vehicle type.
-     *
-     * Useful for reporting and progress tracking during batch operations.
-     *
-     * @return array<int, int> associative array of vehicle_type_id => count
-     */
-    public function countByVehicleType(): array
-    {
-        $sql = '
-            SELECT id_vehicles_type, COUNT(*) AS cnt
-            FROM tires
-            GROUP BY id_vehicles_type
-            ORDER BY id_vehicles_type
-        ';
-
-        $stmt = $this->pdo->query($sql);
-
-        $result = [];
-        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $result[(int) $row['id_vehicles_type']] = (int) $row['cnt'];
-        }
-
-        return $result;
-    }
-
-    /**
-     * Count total tires, optionally filtered by vehicle type.
-     *
-     * @param null|int $vehicleTypeId Filter by vehicle type. Null = all.
-     *
-     * @return int total count
-     */
-    public function countTires(?int $vehicleTypeId = null): int
-    {
-        $sql = 'SELECT COUNT(*) AS cnt FROM tires';
-
-        $params = [];
-        if (null !== $vehicleTypeId) {
-            $sql .= ' WHERE id_vehicles_type = :vtype';
-            $params[':vtype'] = $vehicleTypeId;
-        }
-
-        $stmt = $this->pdo->prepare($sql);
-        foreach ($params as $key => $value) {
-            $stmt->bindValue($key, $value, \PDO::PARAM_INT);
-        }
-        $stmt->execute();
-
-        return (int) $stmt->fetchColumn();
-    }
 }

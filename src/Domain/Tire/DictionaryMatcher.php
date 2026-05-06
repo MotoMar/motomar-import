@@ -47,7 +47,7 @@ class DictionaryMatcher
      *
      * @return string[] array of code strings; empty when the kind is unknown
      */
-    public function getCodesForKind(string $kind): array
+    private function getCodesForKind(string $kind): array
     {
         return $this->codesByKind[$kind] ?? [];
     }
@@ -57,7 +57,7 @@ class DictionaryMatcher
      *
      * @return string[]
      */
-    public function getKinds(): array
+    private function getKinds(): array
     {
         return array_keys($this->codesByKind);
     }
@@ -71,7 +71,7 @@ class DictionaryMatcher
      *
      * @return bool true when the parameter matches a code in the kind
      */
-    public function matchParameterToKind(string $parameter, string $kind): bool
+    private function matchParameterToKind(string $parameter, string $kind): bool
     {
         $codes = $this->getCodesForKind($kind);
         $normalised = mb_strtolower(trim($parameter), 'UTF-8');
