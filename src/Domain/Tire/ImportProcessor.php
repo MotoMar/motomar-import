@@ -253,6 +253,12 @@ final class ImportProcessor
 
     private function update(int $tireId, TireRow $row, array $producer): void
     {
+        $this->logger->info("UPDATE: Processing tire {$tireId}", [
+            'ean' => $row->ean,
+            'producer' => $producer['producer'],
+            'model' => $row->modelName,
+        ]);
+
         // Check flag_extraoffer before updating price (don't update for special offers/leżaki)
         if ($this->options['update_price'] && $row->hasValidPrice()) {
             $product = $this->repo->getProductById($tireId);
@@ -301,6 +307,12 @@ final class ImportProcessor
 
     private function create(TireRow $row, array $producer, int $treadId, int $seasonId): void
     {
+        $this->logger->info("CREATE: Creating new tire", [
+            'ean' => $row->ean,
+            'producer' => $producer['producer'],
+            'model' => $row->modelName,
+        ]);
+
         $size = SizeParser::parseSize($row->size);
 
         if ($size === null) {
