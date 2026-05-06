@@ -1,151 +1,124 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Krok 2a: Nowi Producenci - Motomar Import</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f5f5; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 30px; }
-        .header { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #e0e0e0; }
-        h1 { color: #333; font-size: 24px; margin-bottom: 8px; }
-        .steps { display: flex; gap: 10px; margin-top: 15px; font-size: 13px; }
-        .step { padding: 8px 16px; background: #e0e0e0; border-radius: 20px; color: #666; }
-        .step.active { background: #007bff; color: white; font-weight: 600; }
-        .step.completed { background: #28a745; color: white; }
+<?php
+$title       = 'Krok 2a — Nowi producenci';
+$currentStep = 2;
 
-        .alert { padding: 15px 20px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; margin-bottom: 25px; }
-        .alert-icon { display: inline-block; font-size: 20px; margin-right: 10px; }
-        .alert-title { font-weight: 600; color: #856404; margin-bottom: 5px; }
-        .alert-text { color: #856404; font-size: 14px; line-height: 1.5; }
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 
-        .error { padding: 15px 20px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 6px; margin-bottom: 20px; color: #721c24; }
+ob_start();
+?>
 
-        .producers-list { margin-bottom: 30px; }
-        .producer-item { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 20px; margin-bottom: 15px; }
-        .producer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .producer-name { font-size: 18px; font-weight: 600; color: #333; }
-        .producer-count { background: #007bff; color: white; padding: 4px 12px; border-radius: 12px; font-size: 13px; font-weight: 600; }
-
-        .form-group { margin-bottom: 15px; }
-        .form-group:last-child { margin-bottom: 0; }
-        label { display: block; font-size: 13px; font-weight: 600; color: #666; margin-bottom: 6px; }
-        input[type="text"], select { width: 100%; padding: 10px 14px; border: 2px solid #dee2e6; border-radius: 6px; font-size: 15px; transition: border-color 0.2s; }
-        input[type="text"]:focus, select:focus { outline: none; border-color: #007bff; }
-        select { background: white; cursor: pointer; }
-
-        .help-text { font-size: 12px; color: #6c757d; margin-top: 6px; font-style: italic; }
-
-        .actions { display: flex; gap: 15px; padding-top: 20px; border-top: 2px solid #e0e0e0; }
-        button { padding: 12px 30px; border: none; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-        .btn-back { background: #6c757d; color: white; }
-        .btn-back:hover { background: #5a6268; }
-        .btn-submit { background: #007bff; color: white; flex: 1; }
-        .btn-submit:hover { background: #0056b3; }
-
-        .summary { background: #e7f3ff; border: 1px solid #007bff; border-radius: 6px; padding: 15px; margin-bottom: 25px; }
-        .summary-text { color: #004085; font-size: 14px; line-height: 1.6; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🆕 Krok 2a: Nowi Producenci</h1>
-            <div class="steps">
-                <span class="step completed">1. Upload CSV</span>
-                <span class="step active">2a. Nowi producenci</span>
-                <span class="step">2. Mapowanie</span>
-                <span class="step">3. Potwierdzenie</span>
-                <span class="step">4. Import</span>
-            </div>
-        </div>
+<div class="card bg-base-100 shadow">
+    <div class="card-body">
+        <h2 class="card-title text-2xl mb-1">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-warning" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            Wykryto nowych producentów
+        </h2>
+        <p class="text-base-content/70 mb-6">
+            Producenci poniżej nie istnieją w bazie danych. Możesz poprawić ich nazwy
+            (np. zmienić wielkość liter, dodać pełną nazwę) oraz wybrać klasę producenta.
+            Wykryto <strong><?= count($newProducers) ?></strong>
+            <?= count($newProducers) === 1 ? 'nowego producenta' : 'nowych producentów' ?>.
+        </p>
 
         <?php if (isset($_SESSION['error'])): ?>
-            <div class="error">
-                <?= htmlspecialchars($_SESSION['error']) ?>
-                <?php unset($_SESSION['error']); ?>
-            </div>
+        <div class="alert alert-error mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span><?= htmlspecialchars($_SESSION['error'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></span>
+        </div>
+        <?php unset($_SESSION['error']); ?>
         <?php endif; ?>
 
-        <div class="alert">
-            <div class="alert-icon">⚠️</div>
-            <div class="alert-title">Wykryto nowych producentów w cennikach</div>
-            <div class="alert-text">
-                Producenci poniżej nie istnieją w bazie danych. Możesz poprawić ich nazwy
-                (np. zmienić wielkość liter, dodać pełną nazwę) przed importem.
-                Nazwy zostaną zapisane i użyte dla wszystkich produktów danego producenta.
-            </div>
-        </div>
+        <form method="POST" action="<?= htmlspecialchars($base . '/producers', ENT_QUOTES, 'UTF-8') ?>">
+            <?= \App\Csrf::field() ?>
 
-        <div class="summary">
-            <div class="summary-text">
-                📊 <strong>Podsumowanie:</strong> Wykryto <strong><?= count($newProducers) ?></strong>
-                <?= count($newProducers) === 1 ? 'nowego producenta' : 'nowych producentów' ?>
-                w cennikach.
-            </div>
-        </div>
-
-        <form method="POST" action="producers">
-            <div class="producers-list">
+            <div class="space-y-4 mb-6">
                 <?php foreach ($newProducers as $producer): ?>
-                    <div class="producer-item">
-                        <div class="producer-header">
-                            <div class="producer-name">
-                                <?= htmlspecialchars($producer['name']) ?>
-                            </div>
-                            <div class="producer-count">
+                <div class="card bg-base-200 border border-base-300">
+                    <div class="card-body p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-bold text-lg">
+                                <?= htmlspecialchars($producer['name'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>
+                            </h3>
+                            <div class="badge badge-primary">
                                 <?= $producer['count'] ?> <?= $producer['count'] === 1 ? 'produkt' : 'produktów' ?>
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label>Nazwa producenta w sklepie:</label>
-                            <input
-                                type="text"
-                                name="producer_name_<?= base64_encode($producer['name']) ?>"
-                                value="<?= htmlspecialchars(ucwords(strtolower($producer['name']))) ?>"
-                                placeholder="np. Nexen Tire, Sailun, Torque"
-                                required
-                                autocomplete="off"
-                            />
-                            <div class="help-text">
-                                💡 Nazwa z cennika: <strong><?= htmlspecialchars($producer['name']) ?></strong>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-medium">Nazwa producenta w sklepie</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    name="producer_name_<?= base64_encode($producer['name']) ?>"
+                                    value="<?= htmlspecialchars(ucwords(strtolower($producer['name'])), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"
+                                    placeholder="np. Nexen Tire, Sailun, Torque"
+                                    class="input input-bordered w-full"
+                                    required
+                                    autocomplete="off"
+                                />
+                                <label class="label">
+                                    <span class="label-text-alt text-base-content/60">
+                                        Nazwa z cennika: <strong><?= htmlspecialchars($producer['name'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></strong>
+                                    </span>
+                                </label>
                             </div>
-                        </div>
 
-                        <div class="form-group">
-                            <label>Klasa producenta:</label>
-                            <select
-                                name="producer_class_<?= base64_encode($producer['name']) ?>"
-                                required
-                            >
-                                <?php foreach ($classifications as $classification): ?>
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-medium">Klasa producenta</span>
+                                </label>
+                                <select
+                                    name="producer_class_<?= base64_encode($producer['name']) ?>"
+                                    class="select select-bordered w-full"
+                                    required
+                                >
+                                    <?php foreach ($classifications as $classification): ?>
                                     <option
                                         value="<?= $classification['id'] ?>"
                                         <?= $classification['id'] === 2 ? 'selected' : '' ?>
                                     >
-                                        <?= htmlspecialchars($classification['name']) ?>
+                                        <?= htmlspecialchars($classification['name'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>
                                     </option>
-                                <?php endforeach; ?>
-                            </select>
-                            <div class="help-text">
-                                💡 Domyślnie: <strong>Średnia</strong> (wybierz Ekonomiczna/Średnia/Premium)
+                                    <?php endforeach; ?>
+                                </select>
+                                <label class="label">
+                                    <span class="label-text-alt text-base-content/60">
+                                        Domyślnie: <strong>Średnia</strong>
+                                    </span>
+                                </label>
                             </div>
                         </div>
                     </div>
+                </div>
                 <?php endforeach; ?>
             </div>
 
-            <div class="actions">
-                <button type="button" class="btn-back" onclick="if(confirm('Czy na pewno chcesz anulować? Trzeba będzie ponownie wgrać plik CSV.')) { window.location.href='/'; }">
+            <div class="card-actions justify-between">
+                <button
+                    type="button"
+                    class="btn btn-ghost"
+                    onclick="if(confirm('Czy na pewno chcesz anulować? Trzeba będzie ponownie wgrać plik CSV.')) { window.location.href='<?= htmlspecialchars($base . '/', ENT_QUOTES, 'UTF-8') ?>'; }"
+                >
                     ← Anuluj
                 </button>
-                <button type="submit" class="btn-submit">
-                    Zapisz i kontynuuj mapowanie →
-                </button>
+                <button type="submit" class="btn btn-primary btn-lg">
+                    Zapisz i kontynuuj mapowanie
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </</button>
             </div>
         </form>
     </div>
-</body>
-</html>
+</div>
+
+<?php
+$content = ob_get_clean();
+require __DIR__ . '/layout.php';

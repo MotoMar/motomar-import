@@ -41,7 +41,7 @@ ob_start();
             <div class="stat">
                 <div class="stat-title">Istniejące produkty</div>
                 <div class="stat-value text-info"><?= $preview['will_update'] ?></div>
-                <div class="stat-desc">cena i etykieta zaktualizowane</div>
+                <div class="stat-desc">etykiety i oznaczenia zaktualizowane</div>
             </div>
             <div class="stat">
                 <div class="stat-title">Pominięte wiersze</div>
@@ -100,13 +100,6 @@ ob_start();
                     <h3 class="font-semibold text-base mb-3">Opcje aktualizacji istniejących opon</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <label class="label cursor-pointer justify-start gap-3">
-                            <input type="checkbox" name="update_price" value="1" class="checkbox checkbox-primary" checked>
-                            <span class="label-text">
-                                <span class="font-medium">Cena</span>
-                                <span class="block text-xs text-base-content/60">Nadpisuje cenę katalogową i cenniki</span>
-                            </span>
-                        </label>
-                        <label class="label cursor-pointer justify-start gap-3">
                             <input type="checkbox" name="update_labels" value="1" class="checkbox checkbox-primary" checked>
                             <span class="label-text">
                                 <span class="font-medium">Etykieta EU</span>
@@ -128,10 +121,17 @@ ob_start();
                             </span>
                         </label>
                         <label class="label cursor-pointer justify-start gap-3">
-                            <input type="checkbox" name="update_pricing" value="1" class="checkbox checkbox-primary">
+                            <input type="checkbox" name="update_pricing" value="1" class="checkbox">
                             <span class="label-text">
                                 <span class="font-medium">Ceny katalogowe</span>
-                                <span class="block text-xs text-base-content/60">Aktualizuje ceny katalogowe na podstawie REFów</span>
+                                <span class="block text-xs text-base-content/60">Aktualizuje ceny katalogowe na podstawie EAN</span>
+                            </span>
+                        </label>
+                        <label class="label cursor-pointer justify-start gap-3">
+                            <input type="checkbox" name="update_ref" value="1" class="checkbox">
+                            <span class="label-text">
+                                <span class="font-medium">REF (numery katalogowe)</span>
+                                <span class="block text-xs text-base-content/60">Aktualizuje REF/REF2 na podstawie EAN</span>
                             </span>
                         </label>
                     </div>
