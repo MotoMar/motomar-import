@@ -169,6 +169,11 @@ final class TireRepository
         return $this->db->get('tires', ['id', 'id_tires_tread', 'id_tires_season'], ['ean' => $ean]) ?: null;
     }
 
+    public function getProductById(int $productId): ?array
+    {
+        return $this->db->get('products', ['id', 'flag_extraoffer'], ['id' => $productId]) ?: null;
+    }
+
     public function tireByRefAndProducer(string $ref, int $producerId): ?array
     {
         return $this->db->get('tires', ['id'], [
@@ -268,18 +273,35 @@ final class TireRepository
         }
     }
 
-    public function updateTireEanRef(int $tireId, string $ean, string $ref2): void
+    /**
+     * Update REF and REF2 (supplier references) if different from current values.
+     * EAN is NOT updated - it's the immutable search key for products.
+     *
+     * REF can change when supplier changes their numbering system.
+     * REF2 is rarely used but can also be updated.
+     */
+    public function updateTireRef(int $tireId, string $ref, string $ref2): void
     {
-        $fields = [];
+        // Get current values
+        $current = $this->db->get('tires', ['ref', 'ref2'], ['id' => $tireId]);
 
-        if ($ean !== '' && strlen($ean) === 13 && ctype_digit($ean)) {
-            $fields['ean'] = $ean;
+        if ($current === null) {
+            return;
         }
 
-        if ($ref2 !== '') {
+        $fields = [];
+
+        // REF: update if not empty and different
+        if ($ref !== '' && $current['ref'] !== $ref) {
+            $fields['ref'] = $ref;
+        }
+
+        // REF2: update if not empty and different
+        if ($ref2 !== '' && $current['ref2'] !== $ref2) {
             $fields['ref2'] = $ref2;
         }
 
+        // Only write to DB if something actually changed
         if (!empty($fields)) {
             $this->db->update('tires', $fields, ['id' => $tireId]);
         }
@@ -292,6 +314,22 @@ final class TireRepository
             'name'        => $name,
             'slug'        => $slug,
             'better_slug' => $slug,
+        ], ['id' => $productId]);
+    }
+
+    public function updateProductNameAndSlug(int $productId, string $name, string $slug): void
+    {
+        $this->db->update('products', [
+            'name'        => $name,
+            'slug'        => $slug,
+            'better_slug' => $slug,
+        ], ['id' => $productId]);
+    }
+
+    public function archiveOldName(int $productId, string $oldName): void
+    {
+        $this->db->update('products', [
+            'old_name' => $oldName,
         ], ['id' => $productId]);
     }
 
