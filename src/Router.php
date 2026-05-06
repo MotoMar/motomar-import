@@ -8,6 +8,7 @@ use App\Controller\ExecuteController;
 use App\Controller\HistoryController;
 use App\Controller\LoginController;
 use App\Controller\MappingController;
+use App\Controller\ProducersController;
 use App\Controller\SeasonsController;
 use App\Controller\UploadController;
 
@@ -16,6 +17,7 @@ final class Router
     private const ROUTES = [
         'GET' => [
             '/'        => [UploadController::class, 'show'],
+            '/producers' => [ProducersController::class, 'show'],
             '/mapping' => [MappingController::class, 'show'],
             '/seasons' => [SeasonsController::class, 'show'],
             '/execute' => [ExecuteController::class, 'show'],
@@ -28,6 +30,7 @@ final class Router
         ],
         'POST' => [
             '/upload'  => [UploadController::class, 'handle'],
+            '/producers' => [ProducersController::class, 'save'],
             '/mapping' => [MappingController::class, 'handle'],
             '/seasons' => [SeasonsController::class, 'handle'],
             '/execute' => [ExecuteController::class, 'execute'],

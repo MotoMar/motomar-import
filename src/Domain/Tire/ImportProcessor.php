@@ -51,6 +51,47 @@ final class ImportProcessor
     }
 
     /**
+     * Analyze CSV and detect new producers that need to be created.
+     *
+     * @return array{name: string, count: int}[] Array of new producers with product counts
+     */
+    public function detectNewProducers(string $csvPath): array
+    {
+        $rows = (new CsvParser())->parseFile($csvPath);
+        $producerCounts = [];
+        $existingProducers = [];
+
+        foreach ($rows as $row) {
+            $name = $row->producerName;
+
+            if ($name === '') {
+                continue;
+            }
+
+            // Check cache first
+            if (!isset($existingProducers[$name])) {
+                $existingProducers[$name] = $this->repo->producerByName($name) !== null;
+            }
+
+            // Count only new producers
+            if (!$existingProducers[$name]) {
+                $producerCounts[$name] = ($producerCounts[$name] ?? 0) + 1;
+            }
+        }
+
+        // Convert to array format
+        $result = [];
+        foreach ($producerCounts as $name => $count) {
+            $result[] = ['name' => $name, 'count' => $count];
+        }
+
+        // Sort by count (most products first)
+        usort($result, fn($a, $b) => $b['count'] <=> $a['count']);
+
+        return $result;
+    }
+
+    /**
      * Dry-run: count rows that would be created, updated, or skipped.
      * No DB writes — uses the same lookup logic as processRow().
      *
@@ -88,12 +129,38 @@ final class ImportProcessor
     }
 
     /**
+     * Create multiple producers at once with name mapping.
+     * Used when user corrects producer names before import.
+     *
+     * @param array<string, string> $producerMapping CSV name => Corrected name
+     *                                               e.g. ['NEXEN' => 'Nexen Tire', 'SAILUN' => 'Sailun']
+     */
+    public function createProducers(array $producerMapping): void
+    {
+        foreach ($producerMapping as $csvName => $correctedName) {
+            $existing = $this->repo->producerByName($correctedName);
+
+            if ($existing === null) {
+                $this->logger->info('Creating producer', [
+                    'csv_name' => $csvName,
+                    'corrected_name' => $correctedName,
+                ]);
+                $this->repo->createProducer($correctedName);
+            }
+        }
+
+        // Clear cache after creating producers
+        $this->producerCache = [];
+    }
+
+    /**
      * @param  array<string, array{tread_id: int, season_id: int, is_new: bool}> $mapping  mappingKey → resolved tread
-     * @param  array{update_price?: bool, update_labels?: bool, update_inne?: bool, update_structure?: bool, update_pricing?: bool} $options
+     * @param  array{update_price?: bool, update_labels?: bool, update_inne?: bool, update_structure?: bool, update_pricing?: bool, update_ref?: bool} $options
      */
     public function run(string $csvPath, array $mapping, array $options = []): array
     {
         $this->options = array_merge($this->options, $options);
+        $this->producerCache = []; // Reset cache
 
         $rows = (new CsvParser())->parseFile($csvPath);
 
@@ -117,20 +184,32 @@ final class ImportProcessor
 
     // -------------------------------------------------------------------------
 
+    private array $producerCache = [];
+
     private function processRow(TireRow $row, array $mapping): void
     {
-        $producer = $this->repo->producerByName($row->producerName);
+        // Use cached producer lookup (avoid repeated DB queries)
+        if (!isset($this->producerCache[$row->producerName])) {
+            $this->producerCache[$row->producerName] = $this->repo->producerByName($row->producerName);
 
-        // Auto-create producer if not exists
-        if ($producer === null) {
-            if ($row->producerName === '') {
-                ++$this->stats['skipped'];
-                $this->logger->debug('Empty producer name, skipping');
-                return;
+            // Auto-create producer if not exists
+            if ($this->producerCache[$row->producerName] === null) {
+                if ($row->producerName === '') {
+                    ++$this->stats['skipped'];
+                    $this->logger->debug('Empty producer name, skipping');
+                    return;
+                }
+
+                $this->logger->info('Creating new producer', ['producer' => $row->producerName]);
+                $this->producerCache[$row->producerName] = $this->repo->createProducer($row->producerName);
             }
+        }
 
-            $this->logger->info('Creating new producer', ['producer' => $row->producerName]);
-            $producer = $this->repo->createProducer($row->producerName);
+        $producer = $this->producerCache[$row->producerName];
+
+        if ($producer === null) {
+            ++$this->stats['skipped'];
+            return;
         }
 
         $entry = $mapping[$row->mappingKey()] ?? null;

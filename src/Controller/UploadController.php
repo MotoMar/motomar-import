@@ -136,7 +136,8 @@ final class UploadController
             return;
         }
 
-        $this->redirect('mapping');
+        // Step 1 → Step 2a (check for new producers first)
+        $this->redirect('producers');
     }
 
     public function reset(): void
