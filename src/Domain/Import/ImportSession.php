@@ -83,13 +83,23 @@ final class ImportSession
     {
         $uuid = $this->uuid();
 
+        error_log(sprintf('ImportSession::getCsvPath - uuid: %s', $uuid ?? '(null)'));
+
         if ($uuid === null) {
+            error_log('ImportSession::getCsvPath - uuid is null, returning null');
             return null;
         }
 
         $path = $this->csvPath($uuid);
+        $fileExists = is_file($path);
 
-        return is_file($path) ? $path : null;
+        error_log(sprintf(
+            'ImportSession::getCsvPath - path: %s, exists: %s',
+            $path,
+            $fileExists ? 'yes' : 'no'
+        ));
+
+        return $fileExists ? $path : null;
     }
 
     public function write(string $uuid, string $key, mixed $data): void

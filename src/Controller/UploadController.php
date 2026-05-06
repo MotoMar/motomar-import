@@ -169,7 +169,7 @@ final class UploadController
 
     private function redirect(string $path): void
     {
-        static $allowed = ['', 'mapping', 'seasons', 'execute', 'result', 'reset'];
+        static $allowed = ['', 'producers', 'mapping', 'seasons', 'execute', 'result', 'reset'];
 
         if (!in_array($path, $allowed, true)) {
             $path = '';
