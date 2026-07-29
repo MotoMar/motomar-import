@@ -9,6 +9,7 @@ use App\Csrf;
 use App\Domain\Import\ImportHistoryRepository;
 use App\Domain\Import\ImportSession;
 use App\Domain\Tire\ImportProcessor;
+use App\Domain\Tire\TireCodesUpdater;
 use App\Domain\Tire\TireRepository;
 
 final class ExecuteController
@@ -93,6 +94,9 @@ final class ExecuteController
             // 2. Run the actual import
             $processor = new ImportProcessor($this->repo, Bootstrap::logger());
             $stats     = $processor->run($csvPath, $resolvedMapping, $options);
+
+            // 3. Rebuild legacy code lookup table, like the old import task did.
+            $stats['tires_codes'] = (new TireCodesUpdater($pdo))->rebuild();
 
             $pdo->commit();
         } catch (\Throwable $e) {
