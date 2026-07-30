@@ -95,12 +95,7 @@ final class ExecuteController
             $processor = new ImportProcessor($this->repo, Bootstrap::logger());
             $stats     = $processor->run($csvPath, $resolvedMapping, $options);
 
-            // 3. Record pricings_tires for updated prices (used by stock engines), per producer
-            foreach ($stats['pricings_tires'] ?? [] as $producerId => $entry) {
-                $this->repo->createPricingRecord($entry['tires'], $producerId, $entry['name'], count($entry['tires']));
-            }
-
-            // 4. Rebuild legacy code lookup table, like the old import task did.
+            // 3. Rebuild legacy code lookup table, like the old import task did.
             $stats['tires_codes'] = (new TireCodesUpdater($pdo))->rebuild();
 
             $pdo->commit();
@@ -119,21 +114,46 @@ final class ExecuteController
         $this->session->write($uuid, 'result', $stats);
         $this->session->setStep(5);
 
-        // Record import in history (outside transaction)
+        // Record pricings_tires per producer (outside transaction, like pricingSave)
         try {
-            // Extract producer name from mapping (first unique producer)
-            $producerNames = array_unique(array_column($mapping, 'producer_name'));
-            $producerName = !empty($producerNames) ? reset($producerNames) : 'unknown';
+            foreach ($stats['pricings_tires'] ?? [] as $producerId => $entry) {
+                $this->repo->createPricingRecord($entry['tires'], $producerId, $entry['name'], count($entry['tires']));
+            }
+        } catch (\Throwable $pricingError) {
+            Bootstrap::logger()->warning('Failed to record pricings_tires', [
+                'error' => $pricingError->getMessage(),
+            ]);
+        }
 
-            $this->history->recordImport(
-                $producerName,
-                (int) ($stats['created'] ?? 0),
-                (int) ($stats['updated'] ?? 0),
-                (int) ($stats['skipped'] ?? 0),
-                count($stats['errors'] ?? []),
-                $stats['errors'] ?? [],
-                $options
-            );
+        // Record import in history per producer (outside transaction)
+        try {
+            $perProducer = $stats['per_producer'] ?? [];
+            if (!empty($perProducer)) {
+                foreach ($perProducer as $producerName => $pStats) {
+                    $this->history->recordImport(
+                        $producerName,
+                        $pStats['created'],
+                        $pStats['updated'],
+                        $pStats['skipped'],
+                        $pStats['errors'],
+                        [], // error messages are shared across producers
+                        $options
+                    );
+                }
+            } else {
+                // Fallback: no per-producer stats (e.g. all rows skipped)
+                $producerNames = array_unique(array_column($mapping, 'producer_name'));
+                $producerName = !empty($producerNames) ? reset($producerNames) : 'unknown';
+                $this->history->recordImport(
+                    $producerName,
+                    (int) ($stats['created'] ?? 0),
+                    (int) ($stats['updated'] ?? 0),
+                    (int) ($stats['skipped'] ?? 0),
+                    count($stats['errors'] ?? []),
+                    $stats['errors'] ?? [],
+                    $options
+                );
+            }
         } catch (\Throwable $historyError) {
             Bootstrap::logger()->warning('Failed to record import history', [
                 'error' => $historyError->getMessage(),

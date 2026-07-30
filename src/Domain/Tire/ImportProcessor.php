@@ -44,6 +44,9 @@ final class ImportProcessor
     /** @var array<int, array{name: string, tires: int[]}> producer_id => {name, tires} */
     private array $pricingsTires = [];
 
+    /** @var array<string, array{created: int, updated: int, skipped: int, errors: int}> producer_name => counts */
+    private array $perProducer = [];
+
     private NameGenerator $nameGenerator;
 
     public function __construct(
@@ -190,10 +193,18 @@ final class ImportProcessor
                 } else {
                     $this->stats['errors_capped'] = true;
                 }
+
+                if ($row->producerName !== '') {
+                    if (!isset($this->perProducer[$row->producerName])) {
+                        $this->perProducer[$row->producerName] = ['created' => 0, 'updated' => 0, 'skipped' => 0, 'errors' => 0];
+                    }
+                    ++$this->perProducer[$row->producerName]['errors'];
+                }
             }
         }
 
         $this->stats['pricings_tires'] = $this->pricingsTires;
+        $this->stats['per_producer']   = $this->perProducer;
 
         return $this->stats;
     }
@@ -228,10 +239,16 @@ final class ImportProcessor
             return;
         }
 
+        $pName = $row->producerName;
+        if (!isset($this->perProducer[$pName])) {
+            $this->perProducer[$pName] = ['created' => 0, 'updated' => 0, 'skipped' => 0, 'errors' => 0];
+        }
+
         $entry = $mapping[$row->mappingKey()] ?? null;
 
         if ($entry === null) {
             ++$this->stats['skipped'];
+            ++$this->perProducer[$pName]['skipped'];
             return;
         }
 
@@ -249,11 +266,27 @@ final class ImportProcessor
         if ($existing !== null) {
             $this->update($existing['id'], $row, $producer);
             ++$this->stats['updated'];
+            ++$this->perProducer[$pName]['updated'];
             return;
         }
 
-        $this->create($row, $producer, $treadId, $seasonId);
-        ++$this->stats['created'];
+        try {
+            $this->create($row, $producer, $treadId, $seasonId);
+            ++$this->stats['created'];
+            ++$this->perProducer[$pName]['created'];
+        } catch (\PDOException $e) {
+            // Duplicate entry on uq_producer_ref — tire exists with same REF but different/missing EAN
+            if (str_contains($e->getMessage(), '1062')) {
+                $fallback = $this->repo->tireByRefAndProducer($row->ref1, $producer['id']);
+                if ($fallback !== null) {
+                    $this->update($fallback['id'], $row, $producer);
+                    ++$this->stats['updated'];
+                    ++$this->perProducer[$pName]['updated'];
+                    return;
+                }
+            }
+            throw $e;
+        }
     }
 
     private function update(int $tireId, TireRow $row, array $producer): void
