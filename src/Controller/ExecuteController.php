@@ -95,14 +95,9 @@ final class ExecuteController
             $processor = new ImportProcessor($this->repo, Bootstrap::logger());
             $stats     = $processor->run($csvPath, $resolvedMapping, $options);
 
-            // 3. Record pricings_tires for updated prices (used by stock engines)
-            $pricingsTires = $stats['pricings_tires'] ?? [];
-            if (!empty($pricingsTires)) {
-                $producerNames = array_unique(array_column($mapping, 'producer_name'));
-                $producerName  = !empty($producerNames) ? reset($producerNames) : 'unknown';
-                $producer      = $this->repo->producerByName($producerName);
-                $producerId    = $producer !== null ? $producer['id'] : 0;
-                $this->repo->createPricingRecord($pricingsTires, $producerId, $producerName, count($pricingsTires));
+            // 3. Record pricings_tires for updated prices (used by stock engines), per producer
+            foreach ($stats['pricings_tires'] ?? [] as $producerId => $entry) {
+                $this->repo->createPricingRecord($entry['tires'], $producerId, $entry['name'], count($entry['tires']));
             }
 
             // 4. Rebuild legacy code lookup table, like the old import task did.

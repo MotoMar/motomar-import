@@ -41,7 +41,7 @@ final class ImportProcessor
         'errors_capped'  => false,
     ];
 
-    /** @var int[] Tire IDs that had their price updated (for pricings_tires) */
+    /** @var array<int, array{name: string, tires: int[]}> producer_id => {name, tires} */
     private array $pricingsTires = [];
 
     private NameGenerator $nameGenerator;
@@ -263,7 +263,11 @@ final class ImportProcessor
             $product = $this->repo->getProductById($tireId);
             if ($product !== null && !$product['flag_extraoffer']) {
                 $this->repo->updateProductPrice($tireId, $row->price);
-                $this->pricingsTires[] = $tireId;
+                $pid = $producer['id'];
+                if (!isset($this->pricingsTires[$pid])) {
+                    $this->pricingsTires[$pid] = ['name' => $producer['producer'], 'tires' => []];
+                }
+                $this->pricingsTires[$pid]['tires'][] = $tireId;
             }
         }
 
