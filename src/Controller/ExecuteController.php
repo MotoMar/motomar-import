@@ -100,7 +100,9 @@ final class ExecuteController
             if (!empty($pricingsTires)) {
                 $producerNames = array_unique(array_column($mapping, 'producer_name'));
                 $producerName  = !empty($producerNames) ? reset($producerNames) : 'unknown';
-                $this->repo->createPricingRecord($pricingsTires, $producerName, count($pricingsTires));
+                $producer      = $this->repo->producerByName($producerName);
+                $producerId    = $producer !== null ? $producer['id'] : 0;
+                $this->repo->createPricingRecord($pricingsTires, $producerId, $producerName, count($pricingsTires));
             }
 
             // 4. Rebuild legacy code lookup table, like the old import task did.

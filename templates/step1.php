@@ -53,6 +53,29 @@ ob_start();
             </div>
         </div>
 
+        <?php if (!empty($outdatedPricings)): ?>
+        <div class="alert alert-error mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <div>
+                <span class="font-semibold">Nieaktualny cennik producenta</span>
+                <ul class="mt-1 text-sm list-disc list-inside">
+                    <?php foreach ($outdatedPricings as $row): ?>
+                    <li>
+                        <strong><?= htmlspecialchars($row['producer'], ENT_QUOTES, 'UTF-8') ?></strong>
+                        — <?= $row['last_born'] !== null
+                            ? 'ostatni cennik: ' . htmlspecialchars($row['last_born'], ENT_QUOTES, 'UTF-8')
+                            : 'brak cennika w systemie' ?>
+                    </li>
+                    <?php endforeach; ?>
+                </ul>
+                <span class="text-sm mt-1 block">Przy imporcie zaznacz "Ceny katalogowe" aby zaktualizowac pricings_tires (wymagane przez stany magazynowe).</span>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <?php if (isset($error)): ?>
         <div class="alert alert-error mb-4">
             <span><?= htmlspecialchars($error, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></span>

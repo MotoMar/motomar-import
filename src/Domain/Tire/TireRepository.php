@@ -549,10 +549,11 @@ final class TireRepository
      * Mirrors the logic from pricingSave in the old panel.
      *
      * @param int[]  $tireIds  Tire IDs that had their price updated
+     * @param int    $producerId
      * @param string $producerName
      * @param int    $rowsUpdated
      */
-    public function createPricingRecord(array $tireIds, string $producerName, int $rowsUpdated): void
+    public function createPricingRecord(array $tireIds, int $producerId, string $producerName, int $rowsUpdated): void
     {
         if (empty($tireIds)) {
             return;
@@ -565,7 +566,7 @@ final class TireRepository
         $stmt = $pdo->prepare("
             INSERT INTO pricings SET
                 user_id = 0,
-                producer_id = 0,
+                producer_id = :producer_id,
                 producer_name = :producer_name,
                 rows_all = :rows_all,
                 rows_updated = :rows_updated,
@@ -580,6 +581,7 @@ final class TireRepository
                 visible = 1
         ");
         $stmt->execute([
+            'producer_id'   => $producerId,
             'producer_name' => $producerName,
             'rows_all'      => count($tireIds),
             'rows_updated'  => $rowsUpdated,
@@ -605,6 +607,72 @@ final class TireRepository
                 'born'       => $born,
             ]);
         }
+    }
+
+    /**
+     * Get last pricing date for each producer (from pricings table).
+     *
+     * @param  string[] $producerNames
+     * @return array<string, string|null>  producer_name => last born date (or null if never)
+     */
+    public function getLastPricingDates(array $producerNames): array
+    {
+        if (empty($producerNames)) {
+            return [];
+        }
+
+        $pdo = $this->db->pdo;
+        $placeholders = implode(',', array_fill(0, count($producerNames), '?'));
+
+        $stmt = $pdo->prepare("
+            SELECT producer_name, MAX(born) AS last_born
+            FROM pricings
+            WHERE producer_name IN ({$placeholders}) AND visible = 1
+            GROUP BY producer_name
+        ");
+        $stmt->execute(array_values($producerNames));
+
+        $result = [];
+        foreach ($producerNames as $name) {
+            $result[$name] = null;
+        }
+        foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+            $result[$row['producer_name']] = $row['last_born'];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get producers whose last pricing is older than 12 months or missing entirely.
+     *
+     * @return array<int, array{producer: string, last_born: string|null}>
+     */
+    public function getOutdatedPricingProducers(): array
+    {
+        $pdo = $this->db->pdo;
+        $cutoff = date('Y-m-d', strtotime('-12 months'));
+
+        $stmt = $pdo->prepare("
+            SELECT
+                pp.producer,
+                MAX(p.born) AS last_born
+            FROM
+                products_producers pp
+            LEFT JOIN
+                pricings p ON p.producer_name = pp.producer AND p.visible = 1
+            WHERE
+                pp.id_product_category = 1
+            GROUP BY
+                pp.producer
+            HAVING
+                last_born IS NULL OR last_born < :cutoff
+            ORDER BY
+                last_born ASC, pp.producer ASC
+        ");
+        $stmt->execute(['cutoff' => $cutoff]);
+
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
     public static function slug(string $text): string

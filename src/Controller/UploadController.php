@@ -8,6 +8,7 @@ use App\Bootstrap;
 use App\Csrf;
 use App\Domain\Csv\CsvParser;
 use App\Domain\Import\ImportSession;
+use App\Domain\Tire\TireRepository;
 
 final class UploadController
 {
@@ -22,6 +23,9 @@ final class UploadController
     {
         $error = $_SESSION['_flash_error'] ?? null;
         unset($_SESSION['_flash_error']);
+
+        $repo = new TireRepository();
+        $outdatedPricings = $repo->getOutdatedPricingProducers();
 
         require dirname(__DIR__, 2) . '/templates/step1.php';
     }
