@@ -644,7 +644,8 @@ final class TireRepository
     }
 
     /**
-     * Get producers whose last pricing is older than 12 months or missing entirely.
+     * Get producers whose last pricing is older than 12 months,
+     * limited to producers that have entries in pricings_tires (used by stock engines).
      *
      * @return array<int, array{producer: string, last_born: string|null}>
      */
@@ -659,6 +660,10 @@ final class TireRepository
                 MAX(p.born) AS last_born
             FROM
                 products_producers pp
+            INNER JOIN
+                tires t ON t.id_product_producer = pp.id
+            INNER JOIN
+                pricings_tires pt ON pt.tire_id = t.id
             LEFT JOIN
                 pricings p ON p.producer_name = pp.producer AND p.visible = 1
             WHERE
