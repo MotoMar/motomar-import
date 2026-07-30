@@ -73,11 +73,11 @@ final class ExecuteController
         }
 
         $options = [
-            'update_price'     => false, // Never update product prices - catalog prices are updated via update_pricing
+            'update_price'     => !empty($_POST['update_price']),
             'update_labels'    => !empty($_POST['update_labels']),
             'update_inne'      => !empty($_POST['update_inne']),
             'update_structure' => !empty($_POST['update_structure']),
-            'update_pricing'   => !empty($_POST['update_pricing']),
+            'update_pricing'   => false,
             'update_ref'       => !empty($_POST['update_ref']),
         ];
 
@@ -95,7 +95,15 @@ final class ExecuteController
             $processor = new ImportProcessor($this->repo, Bootstrap::logger());
             $stats     = $processor->run($csvPath, $resolvedMapping, $options);
 
-            // 3. Rebuild legacy code lookup table, like the old import task did.
+            // 3. Record pricings_tires for updated prices (used by stock engines)
+            $pricingsTires = $stats['pricings_tires'] ?? [];
+            if (!empty($pricingsTires)) {
+                $producerNames = array_unique(array_column($mapping, 'producer_name'));
+                $producerName  = !empty($producerNames) ? reset($producerNames) : 'unknown';
+                $this->repo->createPricingRecord($pricingsTires, $producerName, count($pricingsTires));
+            }
+
+            // 4. Rebuild legacy code lookup table, like the old import task did.
             $stats['tires_codes'] = (new TireCodesUpdater($pdo))->rebuild();
 
             $pdo->commit();

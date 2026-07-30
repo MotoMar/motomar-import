@@ -200,6 +200,11 @@ final class TireRepository
 
     // ------------------------------------------------------------------ product updates
 
+    public function updateProductPrice(int $productId, float $price): void
+    {
+        $this->db->update('products', ['price_catalog_netto' => $price], ['id' => $productId]);
+    }
+
     public function updateProductCatalogPrice(int $productId, float $price): void
     {
         $this->db->update('products', ['price_catalog_netto' => $price], ['id' => $productId]);
@@ -533,6 +538,71 @@ final class TireRepository
                 'id_price_group' => $group['id'],
                 'price_netto'   => $ceiledPrice,
                 'discount'      => 0,
+            ]);
+        }
+    }
+
+    // ------------------------------------------------------------------ pricings
+
+    /**
+     * Create a pricing history record and insert pricings_tires entries.
+     * Mirrors the logic from pricingSave in the old panel.
+     *
+     * @param int[]  $tireIds  Tire IDs that had their price updated
+     * @param string $producerName
+     * @param int    $rowsUpdated
+     */
+    public function createPricingRecord(array $tireIds, string $producerName, int $rowsUpdated): void
+    {
+        if (empty($tireIds)) {
+            return;
+        }
+
+        $pdo  = $this->db->pdo;
+        $born = date('Y-m-d');
+
+        // Insert pricing history
+        $stmt = $pdo->prepare("
+            INSERT INTO pricings SET
+                user_id = 0,
+                producer_id = 0,
+                producer_name = :producer_name,
+                rows_all = :rows_all,
+                rows_updated = :rows_updated,
+                rows_same = 0,
+                rows_unknown = 0,
+                rows_other = 0,
+                unknown_codes = '',
+                file_name = 'import',
+                notice = 'motomar-import',
+                born = :born,
+                created = NOW(),
+                visible = 1
+        ");
+        $stmt->execute([
+            'producer_name' => $producerName,
+            'rows_all'      => count($tireIds),
+            'rows_updated'  => $rowsUpdated,
+            'born'          => $born,
+        ]);
+
+        $pricingId = (int) $pdo->lastInsertId();
+
+        // Insert pricings_tires (ON DUPLICATE KEY UPDATE for idempotency)
+        $stmt = $pdo->prepare("
+            INSERT INTO pricings_tires (tire_id, pricing_id, born, created)
+            VALUES (:tire_id, :pricing_id, :born, NOW())
+            ON DUPLICATE KEY UPDATE
+                pricing_id = VALUES(pricing_id),
+                born = VALUES(born),
+                created = VALUES(created)
+        ");
+
+        foreach ($tireIds as $tireId) {
+            $stmt->execute([
+                'tire_id'    => $tireId,
+                'pricing_id' => $pricingId,
+                'born'       => $born,
             ]);
         }
     }

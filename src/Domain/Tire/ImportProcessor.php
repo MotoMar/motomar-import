@@ -41,6 +41,9 @@ final class ImportProcessor
         'errors_capped'  => false,
     ];
 
+    /** @var int[] Tire IDs that had their price updated (for pricings_tires) */
+    private array $pricingsTires = [];
+
     private NameGenerator $nameGenerator;
 
     public function __construct(
@@ -190,6 +193,8 @@ final class ImportProcessor
             }
         }
 
+        $this->stats['pricings_tires'] = $this->pricingsTires;
+
         return $this->stats;
     }
 
@@ -258,6 +263,7 @@ final class ImportProcessor
             $product = $this->repo->getProductById($tireId);
             if ($product !== null && !$product['flag_extraoffer']) {
                 $this->repo->updateProductPrice($tireId, $row->price);
+                $this->pricingsTires[] = $tireId;
             }
         }
 

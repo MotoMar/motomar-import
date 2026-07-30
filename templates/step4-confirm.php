@@ -121,10 +121,10 @@ ob_start();
                             </span>
                         </label>
                         <label class="label cursor-pointer justify-start gap-3">
-                            <input type="checkbox" name="update_pricing" value="1" class="checkbox">
+                            <input type="checkbox" name="update_price" value="1" class="checkbox">
                             <span class="label-text">
                                 <span class="font-medium">Ceny katalogowe</span>
-                                <span class="block text-xs text-base-content/60">Aktualizuje ceny katalogowe na podstawie EAN</span>
+                                <span class="block text-xs text-base-content/60">Aktualizuje price_catalog_netto (pomija oferty specjalne)</span>
                             </span>
                         </label>
                         <label class="label cursor-pointer justify-start gap-3">
