@@ -54,14 +54,17 @@ ob_start();
         </div>
 
         <?php if (!empty($outdatedPricings)): ?>
-        <div class="alert alert-error mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-            </svg>
-            <div>
-                <span class="font-semibold">Nieaktualny cennik producenta</span>
-                <ul class="mt-1 text-sm list-disc list-inside">
+        <div class="collapse collapse-arrow border border-error rounded-xl mb-6 bg-error/10">
+            <input type="checkbox">
+            <div class="collapse-title text-sm font-medium text-error flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                Nieaktualny cennik — <?= count($outdatedPricings) ?> producent<?= count($outdatedPricings) > 1 ? 'ów' : '' ?>
+            </div>
+            <div class="collapse-content">
+                <ul class="text-sm list-disc list-inside pt-1">
                     <?php foreach ($outdatedPricings as $row): ?>
                     <li>
                         <strong><?= htmlspecialchars($row['producer'], ENT_QUOTES, 'UTF-8') ?></strong>
@@ -71,7 +74,7 @@ ob_start();
                     </li>
                     <?php endforeach; ?>
                 </ul>
-                <span class="text-sm mt-1 block">Przy imporcie zaznacz "Ceny katalogowe" aby zaktualizowac pricings_tires (wymagane przez stany magazynowe).</span>
+                <p class="text-xs text-base-content/60 mt-2">Przy imporcie zaznacz "Ceny katalogowe" aby zaktualizowac pricings_tires (wymagane przez stany magazynowe).</p>
             </div>
         </div>
         <?php endif; ?>
