@@ -354,8 +354,6 @@ final class ImportProcessor
         $profileId      = $this->repo->profileId($size['profile']);
         $constructionId = $this->repo->constructionId($size['construction']);
 
-        $liId = null;
-        $siId = null;
         $li   = '';
         $si   = '';
 
@@ -363,12 +361,13 @@ final class ImportProcessor
             $idx = SizeParser::parseIndices($row->indices);
 
             if ($idx !== null) {
-                $li   = $idx['li2'] !== '' ? $idx['li'] . '/' . $idx['li2'] : $idx['li'];
-                $si   = $idx['si'];
-                $liId = $this->repo->loadIndexId($li);
-                $siId = $this->repo->speedIndexId($si);
+                $li = $idx['li2'] !== '' ? $idx['li'] . '/' . $idx['li2'] : $idx['li'];
+                $si = $idx['si'];
             }
         }
+
+        $liId = $this->repo->loadIndexId($li);
+        $siId = $this->repo->speedIndexId($si);
 
         $shortcuts      = Bootstrap::config()['vehicle_type_shortcuts'];
         $vehicleTypeId  = $shortcuts[$row->vehicleTypeShortcut] ?? 0;

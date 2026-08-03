@@ -343,8 +343,6 @@ final class TireRepository
         $profileId      = $this->profileId($size['profile']);
         $constructionId = $this->constructionId($size['construction']);
 
-        $liId = null;
-        $siId = null;
         $li   = '';
         $si   = '';
 
@@ -352,12 +350,13 @@ final class TireRepository
             $idx = SizeParser::parseIndices($row->indices);
 
             if ($idx !== null) {
-                $li   = $idx['li2'] !== '' ? $idx['li'] . '/' . $idx['li2'] : $idx['li'];
-                $si   = $idx['si'];
-                $liId = $this->loadIndexId($li);
-                $siId = $this->speedIndexId($si);
+                $li = $idx['li2'] !== '' ? $idx['li'] . '/' . $idx['li2'] : $idx['li'];
+                $si = $idx['si'];
             }
         }
+
+        $liId = $this->loadIndexId($li);
+        $siId = $this->speedIndexId($si);
 
         $this->db->update('tires', [
             'id_tires_width'        => $widthId,
