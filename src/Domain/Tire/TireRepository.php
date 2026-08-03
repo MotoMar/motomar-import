@@ -185,11 +185,6 @@ final class TireRepository
         return $this->db->get('tires', ['id', 'id_tires_tread', 'id_tires_season'], ['ean' => $ean]) ?: null;
     }
 
-    public function getProductById(int $productId): ?array
-    {
-        return $this->db->get('products', ['id', 'flag_extraoffer'], ['id' => $productId]) ?: null;
-    }
-
     public function tireByRefAndProducer(string $ref, int $producerId): ?array
     {
         return $this->db->get('tires', ['id'], [
@@ -201,11 +196,6 @@ final class TireRepository
     // ------------------------------------------------------------------ product updates
 
     public function updateProductPrice(int $productId, float $price): void
-    {
-        $this->db->update('products', ['price_catalog_netto' => $price], ['id' => $productId]);
-    }
-
-    public function updateProductCatalogPrice(int $productId, float $price): void
     {
         $this->db->update('products', ['price_catalog_netto' => $price], ['id' => $productId]);
     }

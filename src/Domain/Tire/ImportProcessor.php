@@ -29,7 +29,6 @@ final class ImportProcessor
         'update_labels'    => true,
         'update_inne'      => true,
         'update_structure' => false,
-        'update_pricing'   => false,
         'update_ref'       => false,  // Option to update REF2 from supplier
     ];
 
@@ -172,7 +171,7 @@ final class ImportProcessor
 
     /**
      * @param  array<string, array{tread_id: int, season_id: int, is_new: bool}> $mapping  mappingKey → resolved tread
-     * @param  array{update_price?: bool, update_labels?: bool, update_inne?: bool, update_structure?: bool, update_pricing?: bool, update_ref?: bool} $options
+     * @param  array{update_price?: bool, update_labels?: bool, update_inne?: bool, update_structure?: bool, update_ref?: bool} $options
      */
     public function run(string $csvPath, array $mapping, array $options = []): array
     {
@@ -291,17 +290,13 @@ final class ImportProcessor
 
     private function update(int $tireId, TireRow $row, array $producer): void
     {
-        // Check flag_extraoffer before updating price (don't update for special offers/leżaki)
         if ($this->options['update_price'] && $row->hasValidPrice()) {
-            $product = $this->repo->getProductById($tireId);
-            if ($product !== null && !$product['flag_extraoffer']) {
-                $this->repo->updateProductPrice($tireId, $row->price);
-                $pid = $producer['id'];
-                if (!isset($this->pricingsTires[$pid])) {
-                    $this->pricingsTires[$pid] = ['name' => $producer['producer'], 'tires' => []];
-                }
-                $this->pricingsTires[$pid]['tires'][] = $tireId;
+            $this->repo->updateProductPrice($tireId, $row->price);
+            $pid = $producer['id'];
+            if (!isset($this->pricingsTires[$pid])) {
+                $this->pricingsTires[$pid] = ['name' => $producer['producer'], 'tires' => []];
             }
+            $this->pricingsTires[$pid]['tires'][] = $tireId;
         }
 
         if ($this->options['update_labels']) {
@@ -319,15 +314,6 @@ final class ImportProcessor
 
         if ($this->options['update_structure']) {
             $this->repo->updateTireStructure($tireId, $row);
-        }
-
-        if ($this->options['update_pricing'] && $row->hasValidPrice()) {
-            if ($row->hasValidEan()) {
-                $tireByEan = $this->repo->tireByEan($row->ean);
-                if ($tireByEan !== null) {
-                    $this->repo->updateProductCatalogPrice($tireByEan['id'], $row->price);
-                }
-            }
         }
 
         // Update REF (and optionally REF2) if option enabled

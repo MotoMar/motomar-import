@@ -11,6 +11,8 @@ use PDO;
 
 final class ImportHistoryRepository
 {
+    private const REMOVED_OPTION_KEYS = ['update_pricing'];
+
     private Medoo $db;
 
     public function __construct()
@@ -34,6 +36,7 @@ final class ImportHistoryRepository
         // Extract username without domain
         $userEmail = $_SESSION['_user'] ?? Auth::email() ?? 'unknown';
         $username = $this->extractUsername($userEmail);
+        $options = $this->withoutRemovedOptions($options);
 
         $this->db->insert('import_history', [
             'producer'        => $producer,
@@ -92,6 +95,17 @@ final class ImportHistoryRepository
             error_log('ImportHistoryRepository::getImport error: ' . $e->getMessage());
             return null;
         }
+    }
+
+    public function decodeOptions(?string $options): array
+    {
+        if ($options === null || $options === '') {
+            return [];
+        }
+
+        $decoded = json_decode($options, true);
+
+        return is_array($decoded) ? $this->withoutRemovedOptions($decoded) : [];
     }
 
     /**
@@ -178,5 +192,13 @@ final class ImportHistoryRepository
         $atPos = strpos($email, '@');
         return $atPos !== false ? substr($email, 0, $atPos) : $email;
     }
-}
 
+    private function withoutRemovedOptions(array $options): array
+    {
+        foreach (self::REMOVED_OPTION_KEYS as $key) {
+            unset($options[$key]);
+        }
+
+        return $options;
+    }
+}

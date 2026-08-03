@@ -124,7 +124,7 @@ ob_start();
                             <input type="checkbox" name="update_price" value="1" class="checkbox">
                             <span class="label-text">
                                 <span class="font-medium">Ceny katalogowe</span>
-                                <span class="block text-xs text-base-content/60">Aktualizuje price_catalog_netto (pomija oferty specjalne)</span>
+                                <span class="block text-xs text-base-content/60">Aktualizuje price_catalog_netto takze dla ofert specjalnych</span>
                             </span>
                         </label>
                         <label class="label cursor-pointer justify-start gap-3">

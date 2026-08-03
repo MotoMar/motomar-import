@@ -54,9 +54,7 @@ final class HistoryController
             if ($import['error_messages']) {
                 $import['error_messages'] = json_decode($import['error_messages'], true) ?? [];
             }
-            if ($import['options']) {
-                $import['options'] = json_decode($import['options'], true) ?? [];
-            }
+            $import['options'] = $this->history->decodeOptions($import['options'] ?? null);
 
             require dirname(__DIR__, 2) . '/templates/history-detail.php';
         } catch (\Throwable $e) {
@@ -73,4 +71,3 @@ final class HistoryController
         exit;
     }
 }
-
