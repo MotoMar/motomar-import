@@ -20,8 +20,8 @@ use App\Domain\Tire\TireParametersBuilder;
  * The rows in `pricelist-hard.csv` are the awkward ones, taken from or modelled
  * on what production actually holds: codes that belong to two dictionary kinds
  * at once, three run-flat markers on one tire, a tube type spelled three
- * different ways in the same field, Polish text with the diacritics already
- * destroyed, and a Michelin homologation written with a star character.
+ * different ways in the same field, whole Polish sentences where a marker is
+ * expected, and a Michelin homologation written with a star character.
  *
  * The dictionary is the real one, exported from the production copy, so a
  * result here is a result we would get on live data.
