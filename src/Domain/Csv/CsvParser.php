@@ -10,11 +10,26 @@ final class CsvParser
 {
     private const DELIMITER = '@';
 
+    /**
+     * @param string[]|null $columns Column layout; defaults to the configured
+     *                               one. Passing it explicitly is what lets the
+     *                               parser be exercised without booting the
+     *                               application, which opens a session.
+     */
+    public function __construct(private readonly ?array $columns = null) {}
+
     /** @return TireRow[] */
     public function parseFile(string $filePath): array
     {
-        $columns = Bootstrap::config()['csv_columns'];
-        $handle  = @fopen($filePath, 'r');
+        $columns = $this->columns ?? Bootstrap::config()['csv_columns'];
+
+        // Checked rather than suppressed with @: the suppression operator does
+        // not stop a custom error handler, so the warning surfaced anyway.
+        if (!is_readable($filePath)) {
+            throw new \RuntimeException("Cannot open CSV file: {$filePath}");
+        }
+
+        $handle = fopen($filePath, 'r');
 
         if ($handle === false) {
             throw new \RuntimeException("Cannot open CSV file: {$filePath}");
