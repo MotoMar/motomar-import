@@ -17,6 +17,15 @@ Ten projekt wymaga 8.5:
 /opt/homebrew/opt/php@8.5/bin/php vendor/bin/phpstan analyse --memory-limit=1G
 ```
 
+Composer leży jako `composer.phar` obok aplikacji — lokalnie i na produkcji,
+poza repo (jak w motomar-allegro-php). Aktualnie **2.10.2**, suma SHA-256
+`5ee7125f8a30a34d246cefdc0bc85b8a783b28f2aec968994118512350d28027`. Nowy plik
+bierz z `getcomposer.org/download/<wersja>/composer.phar` i **sprawdź sumę**
+z pliku `.sha256sum` obok, zanim go gdziekolwiek położysz.
+
+Na produkcji: `php8.5 composer.phar install --no-dev`. Bez `--no-dev` wciągnie
+Pesta i PHPStana, których tam nie ma po co trzymać.
+
 PHPStan chodzi na **poziomie 9 bez baseline'u**. Jeśli kusi Cię dopisanie
 baseline'u, przeczytaj komentarz w `phpstan.neon` — był i został usunięty.
 

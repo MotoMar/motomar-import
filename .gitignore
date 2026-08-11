@@ -10,5 +10,9 @@ storage/logs/
 .claude/
 claude/
 
+# Sam composer nie wchodzi do repo — na produkcji leży obok aplikacji, tak samo
+# jak w motomar-allegro-php. Wersja i suma kontrolna w CLAUDE.md.
+composer.phar
+
 # composer.lock is committed on purpose — this is an application, not a library,
 # and everyone running the import should get the same dependency versions.
