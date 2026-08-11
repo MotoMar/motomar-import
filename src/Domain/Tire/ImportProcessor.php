@@ -24,6 +24,7 @@ final class ImportProcessor
 
     private const MAX_ERRORS = 100;
 
+    /** @var array<string, bool> */
     private array $options = [
         'update_price'     => true,
         'update_labels'    => true,
@@ -32,6 +33,17 @@ final class ImportProcessor
         'update_ref'       => false,  // Option to update REF2 from supplier
     ];
 
+    /**
+     * @var array{
+     *     created: int,
+     *     updated: int,
+     *     skipped: int,
+     *     errors: list<string>,
+     *     errors_capped: bool,
+     *     pricings_tires?: array<int, array{name: string, tires: list<int>}>,
+     *     per_producer?: array<string, array{created: int, updated: int, skipped: int, errors: int}>,
+     * }
+     */
     private array $stats = [
         'created'        => 0,
         'updated'        => 0,
@@ -40,7 +52,7 @@ final class ImportProcessor
         'errors_capped'  => false,
     ];
 
-    /** @var array<int, array{name: string, tires: int[]}> producer_id => {name, tires} */
+    /** @var array<int, array{name: string, tires: list<int>}> producer_id => {name, tires} */
     private array $pricingsTires = [];
 
     /** @var array<string, array{created: int, updated: int, skipped: int, errors: int}> producer_name => counts */
@@ -100,6 +112,8 @@ final class ImportProcessor
      * Dry-run: count rows that would be created, updated, or skipped.
      * No DB writes — uses the same lookup logic as processRow().
      *
+     * @param array<string, array{tread_id: int, season_id: int, is_new: bool}> $mapping
+     *
      * @return array{will_create: int, will_update: int, will_skip: int}
      */
     public function preview(string $csvPath, array $mapping): array
@@ -120,7 +134,7 @@ final class ImportProcessor
                 : null;
 
             if ($existing === null && $row->ref1 !== '') {
-                $existing = $this->repo->tireByRefAndProducer($row->ref1, $producer['id']);
+                $existing = $this->repo->tireByRefAndProducer($row->ref1, RowField::integer($producer, 'id'));
             }
 
             if ($existing !== null) {
@@ -137,7 +151,7 @@ final class ImportProcessor
      * Create multiple producers at once with name mapping and classification.
      * Used when user corrects producer names before import.
      *
-     * @param array<string, array{name: string, classification: int}> $producerMapping
+     * @param array<string, string|array{name: string, classification?: int|string}> $producerMapping
      *        CSV name => ['name' => 'Corrected name', 'classification' => 2]
      *        e.g. ['NEXEN' => ['name' => 'Nexen Tire', 'classification' => 2]]
      */
@@ -171,7 +185,9 @@ final class ImportProcessor
 
     /**
      * @param  array<string, array{tread_id: int, season_id: int, is_new: bool}> $mapping  mappingKey → resolved tread
-     * @param  array{update_price?: bool, update_labels?: bool, update_inne?: bool, update_structure?: bool, update_ref?: bool} $options
+     * @param  array<string, bool> $options
+     *
+     * @return array<string, mixed>
      */
     public function run(string $csvPath, array $mapping, array $options = []): array
     {
@@ -210,8 +226,10 @@ final class ImportProcessor
 
     // -------------------------------------------------------------------------
 
+    /** @var array<string, array<string, mixed>|null> */
     private array $producerCache = [];
 
+    /** @param array<string, array{tread_id: int, season_id: int, is_new: bool}> $mapping */
     private function processRow(TireRow $row, array $mapping): void
     {
         // Use cached producer lookup (avoid repeated DB queries)
@@ -231,12 +249,9 @@ final class ImportProcessor
             }
         }
 
+        // Not re-checked for null: the block above either returned or put a
+        // producer in the cache, so there is nothing left to guard against.
         $producer = $this->producerCache[$row->producerName];
-
-        if ($producer === null) {
-            ++$this->stats['skipped'];
-            return;
-        }
 
         $pName = $row->producerName;
         if (!isset($this->perProducer[$pName])) {
@@ -259,11 +274,11 @@ final class ImportProcessor
             : null;
 
         if ($existing === null && $row->ref1 !== '') {
-            $existing = $this->repo->tireByRefAndProducer($row->ref1, $producer['id']);
+            $existing = $this->repo->tireByRefAndProducer($row->ref1, RowField::integer($producer, 'id'));
         }
 
         if ($existing !== null) {
-            $this->update($existing['id'], $row, $producer);
+            $this->update(RowField::integer($existing, 'id'), $row, $producer);
             ++$this->stats['updated'];
             ++$this->perProducer[$pName]['updated'];
             return;
@@ -276,9 +291,9 @@ final class ImportProcessor
         } catch (\PDOException $e) {
             // Duplicate entry on uq_producer_ref — tire exists with same REF but different/missing EAN
             if (str_contains($e->getMessage(), '1062')) {
-                $fallback = $this->repo->tireByRefAndProducer($row->ref1, $producer['id']);
+                $fallback = $this->repo->tireByRefAndProducer($row->ref1, RowField::integer($producer, 'id'));
                 if ($fallback !== null) {
-                    $this->update($fallback['id'], $row, $producer);
+                    $this->update(RowField::integer($fallback, 'id'), $row, $producer);
                     ++$this->stats['updated'];
                     ++$this->perProducer[$pName]['updated'];
                     return;
@@ -288,13 +303,14 @@ final class ImportProcessor
         }
     }
 
+    /** @param array<string, mixed> $producer */
     private function update(int $tireId, TireRow $row, array $producer): void
     {
         if ($this->options['update_price'] && $row->hasValidPrice()) {
             $this->repo->updateProductPrice($tireId, $row->price);
-            $pid = $producer['id'];
+            $pid = RowField::integer($producer, 'id');
             if (!isset($this->pricingsTires[$pid])) {
-                $this->pricingsTires[$pid] = ['name' => $producer['producer'], 'tires' => []];
+                $this->pricingsTires[$pid] = ['name' => RowField::text($producer, 'producer'), 'tires' => []];
             }
             $this->pricingsTires[$pid]['tires'][] = $tireId;
         }
@@ -333,6 +349,7 @@ final class ImportProcessor
         ComarchQueue::addProduct($tireId);
     }
 
+    /** @param array<string, mixed> $producer */
     private function create(TireRow $row, array $producer, int $treadId, int $seasonId): void
     {
         $size = SizeParser::parseSize($row->size);
@@ -365,7 +382,7 @@ final class ImportProcessor
 
         $name = sprintf(
             '%s %s %s%s',
-            $producer['producer'],
+            RowField::text($producer, 'producer'),
             $row->modelName,
             $row->size,
             $row->indices !== '' ? ' ' . $row->indices : ''
@@ -443,7 +460,7 @@ final class ImportProcessor
             $nameAndSlug = $this->nameGenerator->generateWithSlug($tireRow, $classifiedParams);
 
             // Archive old name
-            $oldName = $tireRow['current_name'] ?? '';
+            $oldName = RowField::text($tireRow, 'current_name');
             if ($oldName !== '' && $oldName !== $nameAndSlug['name']) {
                 $this->repo->archiveOldName($productId, $oldName);
             }
@@ -461,6 +478,7 @@ final class ImportProcessor
         }
     }
 
+    /** @return array<string, string> */
     private function buildLabelUpdate(TireRow $row): array
     {
         if (!$row->hasCompleteLabel()) {
@@ -489,6 +507,7 @@ final class ImportProcessor
         return $labels;
     }
 
+    /** @return array<string, mixed> */
     private function resolveInne(string $inne): array
     {
         $result = [
@@ -514,8 +533,14 @@ final class ImportProcessor
         $knownNames = [];
 
         foreach ($markers as $m) {
-            $byGroup[(int) $m['group_id']][] = $m['marker'];
-            $knownNames[] = $m['marker'];
+            $marker = RowField::text($m, 'marker');
+
+            if ('' === $marker) {
+                continue;
+            }
+
+            $byGroup[RowField::integer($m, 'group_id')][] = $marker;
+            $knownNames[] = $marker;
         }
 
         $allMarkers = array_unique(array_merge($knownNames, $tokens));
