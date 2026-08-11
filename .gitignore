@@ -5,5 +5,10 @@ storage/imports/*/
 storage/logs/
 .phpunit.cache/
 
+# Ustawienia lokalne agenta i katalog na jego raporty — jak w motomar-allegro-php.
+# `.rules` i `CLAUDE.md` zostają w repo, bo dotyczą wszystkich.
+.claude/
+claude/
+
 # composer.lock is committed on purpose — this is an application, not a library,
 # and everyone running the import should get the same dependency versions.
