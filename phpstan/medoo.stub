@@ -1,0 +1,60 @@
+<?php
+
+namespace Medoo;
+
+/**
+ * Medoo's real signatures are dynamic: `select()` and `get()` take an optional
+ * `$join` in second position and work out at runtime whether the argument they
+ * were handed is a join or a column list. Static analysis cannot follow that,
+ * so every call in this codebase — all of which use the no-join form — was
+ * reported as passing the wrong argument.
+ *
+ * This stub declares the shapes we actually use. A call that does pass a join
+ * will be flagged here; that is a false positive, and the fix is to extend this
+ * file rather than to widen a type at the call site.
+ *
+ * `$pdo` is declared non-nullable because Medoo's constructor either sets it or
+ * throws, so the null branch is unreachable.
+ */
+class Medoo
+{
+    public \PDO $pdo;
+
+    /**
+     * @param array<int|string, mixed>|string $columns
+     * @param array<string, mixed>|null $where
+     * @return array<int, array<string, mixed>>|null
+     */
+    public function select(string $table, $columns, $where = null, ?callable $callback = null): ?array {}
+
+    /**
+     * @param array<int|string, mixed>|string $columns
+     * @param array<string, mixed>|null $where
+     * @return array<string, mixed>|string|int|float|null
+     */
+    public function get(string $table, $columns, $where = null) {}
+
+    /**
+     * @param array<string, mixed>|array<int, array<string, mixed>> $values
+     */
+    public function insert(string $table, array $values, ?string $primaryKey = null): ?\PDOStatement {}
+
+    /**
+     * @param array<string, mixed> $data
+     * @param array<string, mixed>|null $where
+     */
+    public function update(string $table, $data, $where = null): ?\PDOStatement {}
+
+    /**
+     * @param array<string, mixed>|int|string $where
+     */
+    public function delete(string $table, $where): ?\PDOStatement {}
+
+    /**
+     * @param array<int|string, mixed>|string|null $columns
+     * @param array<string, mixed>|null $where
+     */
+    public function count(string $table, $columns = null, $where = null): ?int {}
+
+    public function id(?string $name = null): ?string {}
+}

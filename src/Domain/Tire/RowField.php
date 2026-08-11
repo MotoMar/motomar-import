@@ -39,6 +39,16 @@ final class RowField
     }
 
     /**
+     * @param array<string, mixed> $row
+     */
+    public static function decimal(array $row, string $key): float
+    {
+        $value = $row[$key] ?? null;
+
+        return is_numeric($value) ? (float) $value : 0.0;
+    }
+
+    /**
      * Reads a column that may legitimately hold NULL, such as a LEFT JOIN.
      *
      * @param array<string, mixed> $row

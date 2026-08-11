@@ -22,21 +22,25 @@ final class TireRepository
 
     // ------------------------------------------------------------------ producers
 
-    /** @return array<int, array{id: int, producer: string, slug: string}> */
+    /** @return array<int, array<string, mixed>> */
     public function allProducers(): array
     {
         return $this->db->select('products_producers', ['id', 'producer', 'slug'], [
             'ORDER' => ['producer' => 'ASC'],
-        ]);
+        ]) ?? [];
     }
 
+    /** @return array<string, mixed>|null */
     public function producerByName(string $name): ?array
     {
-        return $this->db->get('products_producers', ['id', 'producer', 'slug'], [
+        $row = $this->db->get('products_producers', ['id', 'producer', 'slug'], [
             'producer' => $name,
-        ]) ?: null;
+        ]);
+
+        return is_array($row) ? $row : null;
     }
 
+    /** @return array<string, mixed> */
     public function createProducer(string $name, int $classification = 2): array
     {
         $slug = self::slug($name);
@@ -66,7 +70,7 @@ final class TireRepository
 
     // ------------------------------------------------------------------ treads
 
-    /** @return array<int, array{id: int, tread: string, season_id: int|null}> */
+    /** @return array<int, array<string, mixed>> */
     public function treadsByProducer(int $producerId): array
     {
         return $this->db->select('tires_treads', ['id', 'tread', 'season_id'], [
@@ -75,11 +79,14 @@ final class TireRepository
         ]) ?? [];
     }
 
+    /** @return array<string, mixed>|null */
     public function treadById(int $id): ?array
     {
-        return $this->db->get('tires_treads', ['id', 'tread', 'season_id', 'producer_id'], [
+        $row = $this->db->get('tires_treads', ['id', 'tread', 'season_id', 'producer_id'], [
             'id' => $id,
-        ]) ?: null;
+        ]);
+
+        return is_array($row) ? $row : null;
     }
 
     public function createTread(int $producerId, string $name, int $seasonId): int
@@ -105,7 +112,7 @@ final class TireRepository
 
     // ------------------------------------------------------------------ seasons
 
-    /** @return array<int, array{id: int, season: string}> */
+    /** @return array<int, array<string, mixed>> */
     public function allSeasons(): array
     {
         try {
@@ -116,7 +123,11 @@ final class TireRepository
             }
 
             $order = [1 => 0, 2 => 1, 3 => 2];
-            usort($rows, fn($a, $b) => ($order[$a['id']] ?? 99) <=> ($order[$b['id']] ?? 99));
+            usort(
+                $rows,
+                static fn (array $a, array $b): int =>
+                    ($order[RowField::integer($a, 'id')] ?? 99) <=> ($order[RowField::integer($b, 'id')] ?? 99),
+            );
 
             return $rows;
         } catch (\Throwable $e) {
@@ -127,25 +138,25 @@ final class TireRepository
 
     // ------------------------------------------------------------------ dimensions
 
-    public function widthId(string $width): ?int
+    public function widthId(string $width): int
     {
         return $this->dimensionId('tires_width', 'width', $width)
             ?? $this->createDimension('tires_width', 'width', $width);
     }
 
-    public function profileId(string $profile): ?int
+    public function profileId(string $profile): int
     {
         return $this->dimensionId('tires_profile', 'profile', $profile)
             ?? $this->createDimension('tires_profile', 'profile', $profile);
     }
 
-    public function constructionId(string $construction): ?int
+    public function constructionId(string $construction): int
     {
         return $this->dimensionId('tires_construction', 'construction', $construction)
             ?? $this->createDimension('tires_construction', 'construction', $construction);
     }
 
-    public function loadIndexId(string $li): ?int
+    public function loadIndexId(string $li): int
     {
         $result = $this->db->get('tires_li', 'id', ['code' => $li, 'ORDER' => ['id' => 'ASC']]);
         if ($result !== null) {
@@ -156,7 +167,7 @@ final class TireRepository
         return (int) $this->db->id();
     }
 
-    public function speedIndexId(string $si): ?int
+    public function speedIndexId(string $si): int
     {
         $result = $this->db->get('tires_si', 'id', ['code' => $si, 'ORDER' => ['id' => 'ASC']]);
         if ($result !== null) {
@@ -169,6 +180,11 @@ final class TireRepository
 
     // ------------------------------------------------------------------ markers
 
+    /**
+     * @param string[] $values
+     *
+     * @return array<int, array<string, mixed>>
+     */
     public function markersByValues(array $values): array
     {
         if (empty($values)) {
@@ -180,17 +196,23 @@ final class TireRepository
 
     // ------------------------------------------------------------------ tires
 
+    /** @return array<string, mixed>|null */
     public function tireByEan(string $ean): ?array
     {
-        return $this->db->get('tires', ['id', 'id_tires_tread', 'id_tires_season'], ['ean' => $ean]) ?: null;
+        $row = $this->db->get('tires', ['id', 'id_tires_tread', 'id_tires_season'], ['ean' => $ean]);
+
+        return is_array($row) ? $row : null;
     }
 
+    /** @return array<string, mixed>|null */
     public function tireByRefAndProducer(string $ref, int $producerId): ?array
     {
-        return $this->db->get('tires', ['id'], [
+        $row = $this->db->get('tires', ['id'], [
             'ref'               => $ref,
             'id_product_producer' => $producerId,
-        ]) ?: null;
+        ]);
+
+        return is_array($row) ? $row : null;
     }
 
     // ------------------------------------------------------------------ product updates
@@ -209,6 +231,7 @@ final class TireRepository
      * `all_markers` while `other` stayed empty. The two columns describe the
      * same thing and have to move together.
      */
+    /** @param array<string, mixed> $inne */
     public function updateTireInne(int $tireId, array $inne): void
     {
         $fields = [
@@ -266,6 +289,7 @@ final class TireRepository
         return $result !== null ? (float) $result : 999.0;
     }
 
+    /** @param array<string, mixed> $fields */
     public function updateTireLabels(int $tireId, array $fields): void
     {
         if (empty($fields)) {
@@ -321,19 +345,19 @@ final class TireRepository
         // Get current values
         $current = $this->db->get('tires', ['ref', 'ref2'], ['id' => $tireId]);
 
-        if ($current === null) {
+        if (!is_array($current)) {
             return;
         }
 
         $fields = [];
 
         // REF: update if not empty and different
-        if ($ref !== '' && $current['ref'] !== $ref) {
+        if ($ref !== '' && RowField::text($current, 'ref') !== $ref) {
             $fields['ref'] = $ref;
         }
 
         // REF2: update if not empty and different
-        if ($ref2 !== '' && $current['ref2'] !== $ref2) {
+        if ($ref2 !== '' && RowField::text($current, 'ref2') !== $ref2) {
             $fields['ref2'] = $ref2;
         }
 
@@ -427,6 +451,7 @@ final class TireRepository
      * Creates a new product + tire record.
      * Returns the product ID (= tire ID).
      */
+    /** @param array<string, mixed> $data */
     public function createTire(array $data): int
     {
         $this->db->insert('products', [
@@ -442,8 +467,8 @@ final class TireRepository
             'flag_abatement'     => 0,
             'price_catalog_netto' => $data['price'],
             'id_product_category' => Bootstrap::tireCategoryId(),
-            'slug'               => self::slug($data['name']),
-            'better_slug'        => self::slug($data['name']),
+            'slug'               => self::slug(RowField::text($data, 'name')),
+            'better_slug'        => self::slug(RowField::text($data, 'name')),
             'seo'                => '',
             'enemy_counter'      => 0,
             'ceneo_by_place'     => 0,
@@ -457,10 +482,10 @@ final class TireRepository
         $productId = (int) $this->db->id();
 
         $weight = $this->weightByDimensions(
-            (int) $data['width_id'],
-            (int) $data['construction_id'],
-            (int) $data['profile_id'],
-            (int) $data['vehicle_type_id']
+            RowField::integer($data, 'width_id'),
+            RowField::integer($data, 'construction_id'),
+            RowField::integer($data, 'profile_id'),
+            RowField::integer($data, 'vehicle_type_id')
         );
 
         $this->db->insert('tires', [
@@ -483,9 +508,9 @@ final class TireRepository
             'noise'                 => $data['noise'],
             'waves'                 => $data['waves'],
             'tire_producer'         => $data['producer_name'],
-            'tire_producer_slug'    => self::slug($data['producer_name']),
+            'tire_producer_slug'    => self::slug(RowField::text($data, 'producer_name')),
             'tire_model'            => $data['model_name'],
-            'tire_model_slug'       => self::slug($data['model_name']),
+            'tire_model_slug'       => self::slug(RowField::text($data, 'model_name')),
             'tire_size'             => $data['size'],
             'tire_width'            => $data['width'],
             'tire_profile'          => $data['profile'],
@@ -502,7 +527,7 @@ final class TireRepository
             'all_markers'           => $data['all_markers'] ?? '',
             'has_all_parameters'    => 0,
             'tread_version'         => '',
-            'eprel_id'              => $data['eprel_id'] !== null && $data['eprel_id'] !== '' ? (int) $data['eprel_id'] : null,
+            'eprel_id'              => '' !== RowField::text($data, 'eprel_id') ? RowField::integer($data, 'eprel_id') : null,
             'other'                 => $data['other'] ?? null,
             'additional_size'       => $data['additional_size'] ?? '',
             'additional_indexes'    => $data['additional_indexes'] ?? '',
@@ -517,7 +542,7 @@ final class TireRepository
         TireParametersBuilder::upsert(Bootstrap::pdo(), $productId, $classified);
 
         // Create price group entries
-        $this->createPriceGroups($productId, $data['price']);
+        $this->createPriceGroups($productId, RowField::decimal($data, 'price'));
 
         return $productId;
     }
@@ -540,6 +565,11 @@ final class TireRepository
         return self::$parametersBuilder;
     }
 
+    /**
+     * @param array<string, mixed> $tireData
+     *
+     * @return array<string, string[]>
+     */
     private function classifyTireParameters(int $tireId, array $tireData): array
     {
         try {
@@ -576,13 +606,13 @@ final class TireRepository
 
     private function createPriceGroups(int $productId, float $price): void
     {
-        $groups      = $this->db->select('price_groups', ['id'], []);
+        $groups      = $this->db->select('price_groups', ['id'], []) ?? [];
         $ceiledPrice = (float) ceil($price);
 
         foreach ($groups as $group) {
             $this->db->insert('products_price_groups', [
                 'id_product'    => $productId,
-                'id_price_group' => $group['id'],
+                'id_price_group' => RowField::integer($group, 'id'),
                 'price_netto'   => $ceiledPrice,
                 'discount'      => 0,
             ]);
@@ -606,7 +636,7 @@ final class TireRepository
             return;
         }
 
-        $pdo  = $this->db->pdo;
+        $pdo  = Bootstrap::pdo();
         $born = date('Y-m-d');
 
         // Insert pricing history
@@ -668,7 +698,7 @@ final class TireRepository
             return [];
         }
 
-        $pdo = $this->db->pdo;
+        $pdo = Bootstrap::pdo();
         $placeholders = implode(',', array_fill(0, count($producerNames), '?'));
 
         $stmt = $pdo->prepare("
@@ -698,7 +728,7 @@ final class TireRepository
      */
     public function getOutdatedPricingProducers(): array
     {
-        $pdo = $this->db->pdo;
+        $pdo = Bootstrap::pdo();
         $cutoff = date('Y-m-d', strtotime('-12 months'));
 
         $stmt = $pdo->prepare("
