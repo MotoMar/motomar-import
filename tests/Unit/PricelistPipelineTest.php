@@ -267,13 +267,20 @@ it('keeps a homologation written in brackets', function (): void {
 
 // ---------------------------------------------- kinds no vehicle type claims
 
-it('cannot classify the motorcycle prose that the database already holds', function (): void {
-    // `purpose` and `wheel_position` are in tires_dictionary and in 4949 and
-    // 6512 stored classifications — and in no vehicle type's order. Rebuilding
-    // the classification therefore deletes them.
-    $classified = classifyHard('H15');
+it('classifies the motorcycle prose that the shop filters on', function (): void {
+    // `purpose` carries the "Typ motocykla" filter on oponylux.pl: the dictionary
+    // maps each supplier phrase to one of seven groups through its `value` and
+    // `slug` columns. Leaving the kind out of the order meant a rebuild dropped
+    // the whole filter.
+    expect(classifyHard('H15'))->toBe([
+        'tube_type'      => ['TL/TT'],
+        'purpose'        => ['opona szosowa', 'opona do motocykli turystycznych', 'turystyczna'],
+        'wheel_position' => ['tył'],
+    ]);
+});
 
-    expect($classified)->not->toHaveKey('purpose')
-        ->and($classified)->not->toHaveKey('wheel_position')
-        ->and(realDictionary()->getMatchedCode('opona szosowa', 'purpose'))->toBe('opona szosowa');
+it('keeps the prose out of the product name', function (): void {
+    // Both kinds are classification-only. "opona do motocykli turystycznych" in
+    // a product name would be a sentence where a marker belongs.
+    expect(nameHard('H15'))->toBe('Dunlop K555 170/80 - 15 77H TL/TT');
 });

@@ -8,23 +8,24 @@ use App\Domain\Tire\VehicleTypeClassificationOrder;
 /**
  * A rebuild must not delete what it has no way of producing.
  *
- * `purpose` and `wheel_position` exist in tires_dictionary and in thousands of
- * stored classifications, but no vehicle type lists them, so a fresh result
- * never contains them. Before the update path wrote classifications at all,
- * that was harmless. It is not harmless now.
+ * This nearly cost us `purpose` and `wheel_position`: both were in the
+ * dictionary and in thousands of stored classifications while no vehicle type
+ * listed them, so a rebuild produced neither. They are in the order now, but
+ * the rule stands for whatever ends up in that position next.
  */
 
 it('keeps a kind that the vehicle type does not classify', function (): void {
+    // A passenger tire has no `purpose` in its order, so a value stored there by
+    // something else survives a rebuild.
     $result = TireParametersBuilder::preserveUnclassifiableKinds(
-        ['tube_type' => ['TL/TT']],
-        ['tube_type' => ['TL'], 'purpose' => ['opona szosowa'], 'wheel_position' => ['przód/tył']],
-        VehicleTypeClassificationOrder::forVehicleType(7),
+        ['reinforcement' => ['XL']],
+        ['reinforcement' => ['C'], 'purpose' => ['enduro']],
+        VehicleTypeClassificationOrder::forVehicleType(1),
     );
 
     expect($result)->toBe([
-        'tube_type'      => ['TL/TT'],
-        'purpose'        => ['opona szosowa'],
-        'wheel_position' => ['przód/tył'],
+        'reinforcement' => ['XL'],
+        'purpose'       => ['enduro'],
     ]);
 });
 
@@ -54,7 +55,7 @@ it('does not resurrect an empty kind', function (): void {
     expect(TireParametersBuilder::preserveUnclassifiableKinds(
         ['tube_type' => ['TL']],
         ['purpose' => []],
-        VehicleTypeClassificationOrder::forVehicleType(7),
+        VehicleTypeClassificationOrder::forVehicleType(1),
     ))->toBe(['tube_type' => ['TL']]);
 });
 
@@ -76,7 +77,7 @@ it('protects every kind the dictionary knows and no vehicle type claims', functi
     $orphans = array_values(array_diff(array_keys($dictionary), array_keys($classified)));
     sort($orphans);
 
-    // If this list ever changes, someone either added a kind to the order —
-    // good — or added one to the dictionary that nothing will ever write.
-    expect($orphans)->toBe(['purpose', 'wheel_position']);
+    // Empty since purpose and wheel_position joined the two-wheel types. If it
+    // grows again, someone added a kind to the dictionary that nothing writes.
+    expect($orphans)->toBe([]);
 });

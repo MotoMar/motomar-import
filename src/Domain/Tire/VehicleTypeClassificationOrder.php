@@ -93,22 +93,30 @@ final class VehicleTypeClassificationOrder
             'competition', 'studded',
             'tire_technology',  // classification-only: not in suffix order for this type
             'country',          // classification-only: not in suffix order for this type
+            'purpose',          // classification-only: feeds the "Typ motocykla" filter on oponylux.pl
+            'wheel_position',   // classification-only: front / rear / both
         ],
         8  => [
             'ply_rating', 'tube_type', 'highway_service',
             'tire_technology',  // classification-only: not in suffix order for this type
             'country',          // classification-only: not in suffix order for this type
+            'purpose',          // classification-only
+            'wheel_position',   // classification-only
         ],
         9  => [
             'compound_code', 'compound',
             'tube_type',        // classification-only: not in suffix order for this type
             'tire_technology',  // classification-only: not in suffix order for this type
             'country',          // classification-only: not in suffix order for this type
+            'purpose',          // classification-only
+            'wheel_position',   // classification-only
         ],
         10 => [
             'tube_type', 'reinforcement', 'white_wall', 'season', 'highway_service',
             'tire_technology',  // classification-only: not in suffix order for this type
             'country',          // classification-only: not in suffix order for this type
+            'purpose',          // classification-only: feeds the "Typ motocykla" filter on oponylux.pl
+            'wheel_position',   // classification-only
         ],
     ];
 
