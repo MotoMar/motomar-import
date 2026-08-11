@@ -112,7 +112,7 @@ final class ImportProcessor
      * Dry-run: count rows that would be created, updated, or skipped.
      * No DB writes — uses the same lookup logic as processRow().
      *
-     * @param array<string, array{tread_id: int, season_id: int, is_new: bool}> $mapping
+     * @param array<string, mixed> $mapping Klucz mapowania → rozstrzygnięty bieżnik
      *
      * @return array{will_create: int, will_update: int, will_skip: int}
      */
@@ -184,7 +184,7 @@ final class ImportProcessor
     }
 
     /**
-     * @param  array<string, array{tread_id: int, season_id: int, is_new: bool}> $mapping  mappingKey → resolved tread
+     * @param  array<string, mixed> $mapping  mappingKey → resolved tread
      * @param  array<string, bool> $options
      *
      * @return array<string, mixed>
@@ -229,7 +229,7 @@ final class ImportProcessor
     /** @var array<string, array<string, mixed>|null> */
     private array $producerCache = [];
 
-    /** @param array<string, array{tread_id: int, season_id: int, is_new: bool}> $mapping */
+    /** @param array<string, mixed> $mapping Klucz mapowania → rozstrzygnięty bieżnik */
     private function processRow(TireRow $row, array $mapping): void
     {
         // Use cached producer lookup (avoid repeated DB queries)
@@ -266,8 +266,9 @@ final class ImportProcessor
             return;
         }
 
-        $treadId  = (int) $entry['tread_id'];
-        $seasonId = (int) $entry['season_id'];
+        $entry    = RowField::normalise(is_array($entry) ? $entry : []);
+        $treadId  = RowField::integer($entry, 'tread_id');
+        $seasonId = RowField::integer($entry, 'season_id');
 
         $existing = $row->hasValidEan()
             ? $this->repo->tireByEan($row->ean)

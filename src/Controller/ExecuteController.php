@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Domain\Tire\RowField;
 use App\Request;
 use App\Bootstrap;
 use App\Csrf;
@@ -36,7 +37,10 @@ final class ExecuteController
         }
 
         $mapping    = $this->session->readArray($uuid, 'mapping');
-        $newModels  = array_filter($mapping, fn($m) => $m['is_new']);
+        $newModels  = array_filter(
+            $mapping,
+            static fn (mixed $m): bool => is_array($m) && RowField::flag(RowField::normalise($m), 'is_new'),
+        );
         $seasonMap  = array_column($this->repo->allSeasons(), 'season', 'id');
 
         $csvPath  = $this->session->csvPath($uuid);
@@ -83,7 +87,7 @@ final class ExecuteController
 
         Bootstrap::logger()->info('Import started', ['uuid' => $uuid, 'options' => $options]);
 
-        $pdo = Bootstrap::db()->pdo;
+        $pdo = Bootstrap::pdo();
 
         try {
             $pdo->beginTransaction();
@@ -116,8 +120,10 @@ final class ExecuteController
 
         // Record pricings_tires per producer (outside transaction, like pricingSave)
         try {
-            foreach ($stats['pricings_tires'] ?? [] as $producerId => $entry) {
-                $this->repo->createPricingRecord($entry['tires'], $producerId, $entry['name'], count($entry['tires']));
+            foreach (RowField::rows($stats, 'pricings_tires') as $producerId => $entry) {
+                $tireIds = array_map(intval(...), RowField::strings($entry, 'tires'));
+
+                $this->repo->createPricingRecord($tireIds, (int) $producerId, RowField::text($entry, 'name'), count($tireIds));
             }
         } catch (\Throwable $pricingError) {
             Bootstrap::logger()->warning('Failed to record pricings_tires', [
@@ -127,30 +133,39 @@ final class ExecuteController
 
         // Record import in history per producer (outside transaction)
         try {
-            $perProducer = $stats['per_producer'] ?? [];
+            $perProducer = RowField::rows($stats, 'per_producer');
             if (!empty($perProducer)) {
                 foreach ($perProducer as $producerName => $pStats) {
                     $this->history->recordImport(
                         $producerName,
-                        $pStats['created'],
-                        $pStats['updated'],
-                        $pStats['skipped'],
-                        $pStats['errors'],
+                        RowField::integer($pStats, 'created'),
+                        RowField::integer($pStats, 'updated'),
+                        RowField::integer($pStats, 'skipped'),
+                        RowField::integer($pStats, 'errors'),
                         [], // error messages are shared across producers
                         $options
                     );
                 }
             } else {
                 // Fallback: no per-producer stats (e.g. all rows skipped)
-                $producerNames = array_unique(array_column($mapping, 'producer_name'));
-                $producerName = !empty($producerNames) ? reset($producerNames) : 'unknown';
+                $producerNames = [];
+
+                foreach ($mapping as $entry) {
+                    if (is_array($entry)) {
+                        $producerNames[] = RowField::text(RowField::normalise($entry), 'producer_name');
+                    }
+                }
+
+                $producerNames = array_values(array_unique(array_filter($producerNames)));
+                $producerName = $producerNames[0] ?? 'unknown';
+                $errorMessages = RowField::strings($stats, 'errors');
                 $this->history->recordImport(
                     $producerName,
-                    (int) ($stats['created'] ?? 0),
-                    (int) ($stats['updated'] ?? 0),
-                    (int) ($stats['skipped'] ?? 0),
-                    count($stats['errors'] ?? []),
-                    $stats['errors'] ?? [],
+                    RowField::integer($stats, 'created'),
+                    RowField::integer($stats, 'updated'),
+                    RowField::integer($stats, 'skipped'),
+                    count($errorMessages),
+                    $errorMessages,
                     $options
                 );
             }
@@ -177,20 +192,35 @@ final class ExecuteController
         require dirname(__DIR__, 2) . '/templates/result.php';
     }
 
+    /**
+     * @param array<string, mixed> $mapping
+     *
+     * @return array<string, mixed>
+     */
     private function createNewTreads(array $mapping): array
     {
         foreach ($mapping as $key => &$entry) {
-            if (!$entry['is_new']) {
+            if (!is_array($entry)) {
                 continue;
             }
 
-            if ($entry['season_id'] <= 0) {
+            $entry = RowField::normalise($entry);
+
+            if (!RowField::flag($entry, 'is_new')) {
+                continue;
+            }
+
+            $seasonId = RowField::integer($entry, 'season_id');
+            $modelName = RowField::text($entry, 'model_name');
+            $producerName = RowField::text($entry, 'producer_name');
+
+            if ($seasonId <= 0) {
                 throw new \RuntimeException(
-                    "Brak sezonu dla modelu: {$entry['model_name']} / {$entry['producer_name']}"
+                    "Brak sezonu dla modelu: {$modelName} / {$producerName}"
                 );
             }
 
-            $producer = $this->repo->producerByName($entry['producer_name']);
+            $producer = $this->repo->producerByName($producerName);
 
             if ($producer === null) {
                 Bootstrap::logger()->warning('Producer not found, skipping new tread', [
@@ -200,7 +230,7 @@ final class ExecuteController
                 continue;
             }
 
-            $treadId          = $this->repo->createTread($producer['id'], $entry['model_name'], $entry['season_id']);
+            $treadId          = $this->repo->createTread(RowField::integer($producer, 'id'), $modelName, $seasonId);
             $entry['tread_id'] = $treadId;
             $entry['is_new']   = false; // mark as resolved
 

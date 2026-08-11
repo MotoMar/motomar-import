@@ -49,6 +49,80 @@ final class RowField
     }
 
     /**
+     * @param array<string, mixed> $row
+     */
+    public static function flag(array $row, string $key): bool
+    {
+        return (bool) ($row[$key] ?? false);
+    }
+
+    /**
+     * Reads a field that holds a list of rows, such as a decoded JSON step file.
+     *
+     * @param array<string, mixed> $row
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public static function rows(array $row, string $key): array
+    {
+        $value = $row[$key] ?? null;
+
+        if (!is_array($value)) {
+            return [];
+        }
+
+        $rows = [];
+
+        foreach ($value as $index => $item) {
+            if (is_array($item)) {
+                $rows[(string) $index] = self::normalise($item);
+            }
+        }
+
+        return $rows;
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     *
+     * @return string[]
+     */
+    public static function strings(array $row, string $key): array
+    {
+        $value = $row[$key] ?? null;
+
+        if (!is_array($value)) {
+            return [];
+        }
+
+        $strings = [];
+
+        foreach ($value as $item) {
+            if (is_scalar($item)) {
+                $strings[] = (string) $item;
+            }
+        }
+
+        return $strings;
+    }
+
+    /**
+     * @param array<mixed, mixed> $row
+     *
+     * @return array<string, mixed>
+     */
+    public static function normalise(array $row): array
+    {
+        $typed = [];
+
+        foreach ($row as $key => $value) {
+            $typed[(string) $key] = $value;
+        }
+
+        return $typed;
+    }
+
+    /**
      * Reads a column that may legitimately hold NULL, such as a LEFT JOIN.
      *
      * @param array<string, mixed> $row
