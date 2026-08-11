@@ -29,7 +29,7 @@ final class SeasonsController
             return;
         }
 
-        $mapping = $this->session->read($uuid, 'mapping') ?? [];
+        $mapping = $this->session->readArray($uuid, 'mapping');
         $newModels = array_filter($mapping, fn($m) => $m['is_new']);
         $seasons   = $this->repo->allSeasons();
 
@@ -52,7 +52,7 @@ final class SeasonsController
             return;
         }
 
-        $mapping        = $this->session->read($uuid, 'mapping') ?? [];
+        $mapping        = $this->session->readArray($uuid, 'mapping');
         $seasonPost     = $_POST['season'] ?? [];
         $modelNamePost  = $_POST['model_name'] ?? [];
 

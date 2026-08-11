@@ -126,6 +126,33 @@ final class ImportSession
         ));
     }
 
+    /**
+     * Reads a step's data as an array.
+     *
+     * `read()` hands back whatever JSON was written, which every caller then
+     * treats as an array anyway. Doing the check once here means the callers
+     * stop guessing and a corrupted file degrades to "nothing was saved"
+     * instead of a type error halfway through a request.
+     *
+     * @return array<string, mixed>
+     */
+    public function readArray(string $uuid, string $key): array
+    {
+        $data = $this->read($uuid, $key);
+
+        if (!is_array($data)) {
+            return [];
+        }
+
+        $typed = [];
+
+        foreach ($data as $index => $value) {
+            $typed[(string) $index] = $value;
+        }
+
+        return $typed;
+    }
+
     public function read(string $uuid, string $key): mixed
     {
         if (!in_array($key, self::ALLOWED_KEYS, true)) {

@@ -39,7 +39,7 @@ final class MappingController
             return;
         }
 
-        $models  = $this->session->read($uuid, 'models') ?? [];
+        $models  = $this->session->readArray($uuid, 'models');
         $seasons = $this->repo->allSeasons();
 
         Bootstrap::logger()->info('Mapping data loaded', [
@@ -97,7 +97,7 @@ final class MappingController
             return;
         }
 
-        $models  = $this->session->read($uuid, 'models') ?? [];
+        $models  = $this->session->readArray($uuid, 'models');
         $mapping = [];
         $hasNew  = false;
 

@@ -6,6 +6,7 @@ namespace App\Domain\Import;
 
 use App\Auth;
 use App\Bootstrap;
+use App\Domain\Tire\RowField;
 use Medoo\Medoo;
 use PDO;
 
@@ -116,14 +117,15 @@ final class ImportHistoryRepository
         try {
             $pdo = Bootstrap::pdo();
             $stmt = $pdo->query('SELECT COUNT(*) as total_imports, SUM(created_count) as total_created, SUM(updated_count) as total_updated, SUM(skipped_count) as total_skipped, SUM(error_count) as total_errors FROM import_history');
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $result = $stmt === false ? [] : $stmt->fetch(PDO::FETCH_ASSOC);
+            $result = is_array($result) ? $result : [];
 
             return [
-                'total_imports' => (int) ($result['total_imports'] ?? 0),
-                'total_created' => (int) ($result['total_created'] ?? 0),
-                'total_updated' => (int) ($result['total_updated'] ?? 0),
-                'total_skipped' => (int) ($result['total_skipped'] ?? 0),
-                'total_errors'  => (int) ($result['total_errors'] ?? 0),
+                'total_imports' => RowField::integer($result, 'total_imports'),
+                'total_created' => RowField::integer($result, 'total_created'),
+                'total_updated' => RowField::integer($result, 'total_updated'),
+                'total_skipped' => RowField::integer($result, 'total_skipped'),
+                'total_errors'  => RowField::integer($result, 'total_errors'),
             ];
         } catch (\Throwable $e) {
             // If table doesn't exist, return empty stats

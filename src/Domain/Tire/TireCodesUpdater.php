@@ -29,9 +29,11 @@ final class TireCodesUpdater
 
     private const BATCH_SIZE = 1000;
 
-    public function __construct(private ?PDO $pdo = null)
+    private PDO $pdo;
+
+    public function __construct(?PDO $pdo = null)
     {
-        $this->pdo ??= Bootstrap::pdo();
+        $this->pdo = $pdo ?? Bootstrap::pdo();
     }
 
     /**
@@ -73,21 +75,25 @@ final class TireCodesUpdater
             $codeCount = 0;
 
             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                if (!is_array($row)) {
+                    continue;
+                }
+
                 ++$tireCount;
 
-                $producerSlug = TireRepository::slug((string) ($row['producer'] ?? ''));
-                $price = (float) ($row['price_catalog_netto'] ?? 0);
+                $producerSlug = TireRepository::slug(RowField::text($row, 'producer'));
+                $price = RowField::decimal($row, 'price_catalog_netto');
                 $codes = array_merge(
-                    $this->codesForValue((string) ($row['ref'] ?? ''), $producerSlug),
-                    $this->codesForValue((string) ($row['ref2'] ?? ''), $producerSlug),
-                    $this->codesForValue((string) ($row['ean'] ?? ''), $producerSlug)
+                    $this->codesForValue(RowField::text($row, 'ref'), $producerSlug),
+                    $this->codesForValue(RowField::text($row, 'ref2'), $producerSlug),
+                    $this->codesForValue(RowField::text($row, 'ean'), $producerSlug)
                 );
 
                 foreach ($codes as $code) {
                     $batch[] = [
                         'code' => $code,
                         'producer_slug' => $producerSlug,
-                        'tire_id' => (int) $row['id'],
+                        'tire_id' => RowField::integer($row, 'id'),
                         'price_catalog_netto' => $price,
                     ];
                     ++$codeCount;

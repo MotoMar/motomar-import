@@ -34,7 +34,7 @@ final class ExecuteController
             return;
         }
 
-        $mapping    = $this->session->read($uuid, 'mapping') ?? [];
+        $mapping    = $this->session->readArray($uuid, 'mapping');
         $newModels  = array_filter($mapping, fn($m) => $m['is_new']);
         $seasonMap  = array_column($this->repo->allSeasons(), 'season', 'id');
 
@@ -63,7 +63,7 @@ final class ExecuteController
             return;
         }
 
-        $mapping = $this->session->read($uuid, 'mapping') ?? [];
+        $mapping = $this->session->readArray($uuid, 'mapping');
         $csvPath = $this->session->csvPath($uuid);
 
         if (!is_file($csvPath)) {
@@ -171,7 +171,7 @@ final class ExecuteController
             return;
         }
 
-        $stats = $this->session->read($uuid, 'result') ?? [];
+        $stats = $this->session->readArray($uuid, 'result');
 
         require dirname(__DIR__, 2) . '/templates/result.php';
     }
