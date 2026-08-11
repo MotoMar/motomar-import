@@ -70,12 +70,10 @@ final class Bootstrap
 
     public static function pdo(): PDO
     {
-        // Medoo stores PDO in private $pdo property
-        $reflection = new \ReflectionClass(self::$db);
-        $property = $reflection->getProperty('pdo');
-        $property->setAccessible(true);
-
-        $pdo = $property->getValue(self::$db);
+        // Medoo declares `public $pdo`, so the reflection this method used to do
+        // was reaching through an open door. It also called setAccessible(),
+        // which 8.5 deprecates because it has done nothing since 8.1.
+        $pdo = self::$db->pdo;
 
         if (!$pdo instanceof PDO) {
             throw new \RuntimeException('Medoo nie trzyma połączenia PDO tam, gdzie się spodziewamy.');
