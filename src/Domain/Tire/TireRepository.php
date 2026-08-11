@@ -269,12 +269,38 @@ final class TireRepository
             return;
         }
 
+        $vehicleTypeId = (int) $vehicleTypeId;
+
         $parameters = $this->classifyTireParameters($tireId, [
-            'vehicle_type_id' => (int) $vehicleTypeId,
+            'vehicle_type_id' => $vehicleTypeId,
             'other'           => $other,
         ]);
 
+        // Whatever the classifier cannot produce, it must not delete.
+        $existing = TireParametersBuilder::fromJson(
+            RowField::nullableText(
+                $this->classifiedParametersRow($tireId),
+                'parameters',
+            ),
+        );
+
+        $parameters = TireParametersBuilder::preserveUnclassifiableKinds(
+            $parameters,
+            $existing,
+            VehicleTypeClassificationOrder::forVehicleType($vehicleTypeId),
+        );
+
         TireParametersBuilder::upsert(Bootstrap::pdo(), $tireId, $parameters);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function classifiedParametersRow(int $tireId): array
+    {
+        $row = $this->db->get('tires_classified_parameters', ['parameters'], ['id_tire' => $tireId]);
+
+        return is_array($row) ? $row : [];
     }
 
     public function weightByDimensions(int $widthId, int $constructionId, int $profileId, int $vehicleTypeId): float

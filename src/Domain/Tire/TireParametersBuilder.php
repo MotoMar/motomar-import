@@ -210,6 +210,37 @@ class TireParametersBuilder
 
 
     /**
+     * Carries over the kinds a rebuild is not able to produce.
+     *
+     * `tires_dictionary` holds kinds that no vehicle type lists in its
+     * classification order — `purpose` and `wheel_position`, sitting in 4949 and
+     * 6512 stored classifications. Nothing in this codebase can produce them, so
+     * overwriting a row with a fresh result would delete them for good; 934 of
+     * those tires are Bridgestone motorcycles and scooters, and Bridgestone is a
+     * supplier whose price lists we import.
+     *
+     * The rule is narrow on purpose: a kind is preserved only when the current
+     * order has no opinion about it. A kind the classifier does handle is always
+     * replaced, because there the fresh result is the better answer.
+     *
+     * @param array<string, string[]> $fresh    Result of buildParameters()
+     * @param array<string, string[]> $existing What the table holds today
+     * @param string[]                $order    Kinds this vehicle type classifies
+     *
+     * @return array<string, string[]>
+     */
+    public static function preserveUnclassifiableKinds(array $fresh, array $existing, array $order): array
+    {
+        foreach ($existing as $kind => $codes) {
+            if (!\in_array($kind, $order, true) && [] !== $codes) {
+                $fresh[$kind] = $codes;
+            }
+        }
+
+        return $fresh;
+    }
+
+    /**
      * Upsert classified parameters for a single tire into tires_classified_parameters.
      *
      * Uses INSERT ... ON DUPLICATE KEY UPDATE for idempotency.
