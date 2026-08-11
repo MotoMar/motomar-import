@@ -8,26 +8,31 @@ final class Logger
 {
     public function __construct(private readonly string $logDir) {}
 
+    /** @param array<string, mixed> $context */
     public function debug(string $message, array $context = []): void
     {
         $this->write('DEBUG', $message, $context);
     }
 
+    /** @param array<string, mixed> $context */
     public function info(string $message, array $context = []): void
     {
         $this->write('INFO', $message, $context);
     }
 
+    /** @param array<string, mixed> $context */
     public function warning(string $message, array $context = []): void
     {
         $this->write('WARNING', $message, $context);
     }
 
+    /** @param array<string, mixed> $context */
     public function error(string $message, array $context = []): void
     {
         $this->write('ERROR', $message, $context);
     }
 
+    /** @param array<string, mixed> $context */
     private function write(string $level, string $message, array $context): void
     {
         $ctx  = empty($context) ? '' : ' ' . json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);

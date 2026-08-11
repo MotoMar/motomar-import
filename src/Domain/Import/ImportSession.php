@@ -31,12 +31,16 @@ final class ImportSession
 
     public function uuid(): ?string
     {
-        return $_SESSION[self::KEY_UUID] ?? null;
+        $uuid = $_SESSION[self::KEY_UUID] ?? null;
+
+        return is_string($uuid) ? $uuid : null;
     }
 
     public function step(): int
     {
-        return (int) ($_SESSION[self::KEY_STEP] ?? 1);
+        $step = $_SESSION[self::KEY_STEP] ?? null;
+
+        return is_numeric($step) ? (int) $step : 1;
     }
 
     public function setStep(int $step): void
@@ -143,6 +147,11 @@ final class ImportSession
         }
 
         $content = file_get_contents($path);
+
+        if ($content === false) {
+            return null;
+        }
+
         $data = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
 
         error_log(sprintf(

@@ -307,7 +307,7 @@ final class ImportProcessor
 
         if ($this->options['update_inne'] && $row->extra !== '') {
             $this->repo->updateTireInne($tireId, $this->resolveInne($row->extra));
-            $shortcuts      = Bootstrap::config()['vehicle_type_shortcuts'];
+            $shortcuts      = Bootstrap::vehicleTypeShortcuts();
             $vehicleTypeId  = $shortcuts[$row->vehicleTypeShortcut] ?? 0;
             $this->repo->createTireParameters($tireId, $row->extra, $vehicleTypeId);
 
@@ -360,7 +360,7 @@ final class ImportProcessor
         $liId = $this->repo->loadIndexId($li);
         $siId = $this->repo->speedIndexId($si);
 
-        $shortcuts      = Bootstrap::config()['vehicle_type_shortcuts'];
+        $shortcuts      = Bootstrap::vehicleTypeShortcuts();
         $vehicleTypeId  = $shortcuts[$row->vehicleTypeShortcut] ?? 0;
 
         $name = sprintf(

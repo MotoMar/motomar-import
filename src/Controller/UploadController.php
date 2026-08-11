@@ -59,10 +59,10 @@ final class UploadController
             'tmp_name' => $file['tmp_name'],
         ]);
 
-        $maxBytes = (int) Bootstrap::config()['upload_max_size_mb'] * 1024 * 1024;
+        $maxBytes = Bootstrap::uploadMaxSizeMb() * 1024 * 1024;
 
         if ($file['size'] > $maxBytes) {
-            $this->flashError(sprintf('Plik jest za duży. Maksymalny rozmiar: %d MB.', Bootstrap::config()['upload_max_size_mb']));
+            $this->flashError(sprintf('Plik jest za duży. Maksymalny rozmiar: %d MB.', Bootstrap::uploadMaxSizeMb()));
             $this->redirect('');
             return;
         }

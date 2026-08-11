@@ -25,6 +25,9 @@ final readonly class TireRow
     public string $eprelId;
     public float $price;
 
+    /**
+     * @param array<string, string> $data One CSV line, keyed by column name
+     */
     public function __construct(array $data)
     {
         $this->ref1                = trim($data['numkat1']);
@@ -49,7 +52,9 @@ final readonly class TireRow
 
     private static function parsePrice(string $raw): float
     {
-        $raw = preg_replace('/[^\d.,]/', '', trim($raw));
+        // A pattern this simple cannot fail to compile, so null never happens —
+        // falling back to an empty string keeps that provable.
+        $raw = preg_replace('/[^\d.,]/', '', trim($raw)) ?? '';
         $lastComma  = strrpos($raw, ',');
         $lastPeriod = strrpos($raw, '.');
         if ($lastComma !== false && $lastPeriod !== false) {

@@ -182,7 +182,7 @@ class TireDataFetcher
 
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
 
-        return false !== $row ? $row : null;
+        return \is_array($row) ? $row : null;
     }
 
     /**
@@ -198,7 +198,7 @@ class TireDataFetcher
      */
     public static function decodeClassifiedParameters(array $tireRow): array
     {
-        return TireParametersBuilder::fromJson($tireRow['classified_parameters_json'] ?? null);
+        return TireParametersBuilder::fromJson(RowField::nullableText($tireRow, 'classified_parameters_json'));
     }
 
 }

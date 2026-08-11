@@ -51,7 +51,7 @@ class TireParametersBuilder
      */
     public function buildParameters(array $tireRow, DictionaryMatcher $matcher): array
     {
-        $vehicleType = (int) ($tireRow['id_vehicles_type'] ?? 0);
+        $vehicleType = RowField::integer($tireRow, 'id_vehicles_type');
         $order = VehicleTypeClassificationOrder::forVehicleType($vehicleType);
 
         if (empty($order)) {
@@ -88,7 +88,7 @@ class TireParametersBuilder
      */
     private function parseOtherColumn(array $tireRow): array
     {
-        $raw = trim((string) ($tireRow['other'] ?? ''));
+        $raw = RowField::text($tireRow, 'other');
 
         if ('' === $raw) {
             return [];
@@ -309,6 +309,29 @@ class TireParametersBuilder
             return [];
         }
 
-        return $decoded;
+        // The column holds whatever was written to it, and rows predating the
+        // current shape are still in there. Anything that is not "kind => list
+        // of codes" is dropped rather than handed on as if it were.
+        $parameters = [];
+
+        foreach ($decoded as $kind => $codes) {
+            if (!\is_string($kind) || !\is_array($codes)) {
+                continue;
+            }
+
+            $clean = [];
+
+            foreach ($codes as $code) {
+                if (\is_string($code)) {
+                    $clean[] = $code;
+                }
+            }
+
+            if ([] !== $clean) {
+                $parameters[$kind] = $clean;
+            }
+        }
+
+        return $parameters;
     }
 }

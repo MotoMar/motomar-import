@@ -10,18 +10,21 @@ final class Csrf
 
     public static function token(): string
     {
-        if (empty($_SESSION[self::SESSION_KEY])) {
-            $_SESSION[self::SESSION_KEY] = bin2hex(random_bytes(32));
+        $token = $_SESSION[self::SESSION_KEY] ?? null;
+
+        if (!is_string($token) || $token === '') {
+            $token = bin2hex(random_bytes(32));
+            $_SESSION[self::SESSION_KEY] = $token;
         }
 
-        return $_SESSION[self::SESSION_KEY];
+        return $token;
     }
 
     public static function validate(string $token): bool
     {
-        $stored = $_SESSION[self::SESSION_KEY] ?? '';
+        $stored = $_SESSION[self::SESSION_KEY] ?? null;
 
-        return $stored !== '' && hash_equals($stored, $token);
+        return is_string($stored) && $stored !== '' && hash_equals($stored, $token);
     }
 
     public static function field(): string

@@ -46,9 +46,10 @@ final class Router
 
     public function dispatch(): void
     {
-        $method = $_SERVER['REQUEST_METHOD'];
-        $uri    = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-        $base   = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+        $method = self::server('REQUEST_METHOD');
+        $uri    = parse_url(self::server('REQUEST_URI'), PHP_URL_PATH);
+        $uri    = is_string($uri) ? $uri : '/';
+        $base   = rtrim(dirname(self::server('SCRIPT_NAME')), '/');
         $path   = $base !== '' ? substr($uri, strlen($base)) : $uri;
         $path   = $path === '' ? '/' : $path;
 
@@ -61,12 +62,33 @@ final class Router
         }
 
         if (!in_array("{$method} {$path}", self::PUBLIC_ROUTES, true) && !Auth::check()) {
-            $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
             header('Location: ' . $base . '/login');
             exit;
         }
 
         [$class, $action] = $route;
-        (new $class())->$action();
+        $handler = [new $class(), $action];
+
+        // The routing table names the method as a string, so nothing but this
+        // check ties it to a method that exists. A typo here used to be a fatal
+        // error on a live request; now it is a 500 with a name in it.
+        if (!is_callable($handler)) {
+            http_response_code(500);
+            echo "Handler {$class}::{$action} does not exist";
+
+            return;
+        }
+
+        $handler();
+    }
+
+    /**
+     * Reads a server variable that PHP types as mixed.
+     */
+    private static function server(string $key): string
+    {
+        $value = $_SERVER[$key] ?? '';
+
+        return is_string($value) ? $value : '';
     }
 }

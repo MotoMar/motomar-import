@@ -44,13 +44,15 @@ class SlugGenerator
         // Transliterate Polish characters
         $slug = strtr($slug, self::TRANSLIT_MAP);
 
-        // Replace any non-alphanumeric characters with hyphens
-        $slug = preg_replace('/[^a-z0-9]+/', '-', $slug);
+        // Replace any non-alphanumeric characters with hyphens.
+        // preg_replace only returns null on a malformed pattern, which these
+        // literals are not — the ?? keeps that provable rather than assumed.
+        $slug = preg_replace('/[^a-z0-9]+/', '-', $slug) ?? $slug;
 
         // Trim leading and trailing hyphens
         $slug = trim($slug, '-');
 
         // Collapse consecutive hyphens (safety net)
-        return preg_replace('/-{2,}/', '-', $slug);
+        return preg_replace('/-{2,}/', '-', $slug) ?? $slug;
     }
 }

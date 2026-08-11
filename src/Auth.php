@@ -16,12 +16,16 @@ final class Auth
 
     public static function id(): ?int
     {
-        return isset($_SESSION[self::SESSION_KEY_ID]) ? (int) $_SESSION[self::SESSION_KEY_ID] : null;
+        $id = $_SESSION[self::SESSION_KEY_ID] ?? null;
+
+        return is_numeric($id) ? (int) $id : null;
     }
 
     public static function email(): ?string
     {
-        return $_SESSION[self::SESSION_KEY_EMAIL] ?? null;
+        $email = $_SESSION[self::SESSION_KEY_EMAIL] ?? null;
+
+        return is_string($email) ? $email : null;
     }
 
     public static function login(int $id, string $email): void

@@ -41,12 +41,12 @@ class LiSiFormatter
         }
 
         // Only LI has dual values: "121/118S"
-        if (null !== $liParts && null === $siParts) {
+        if (null !== $liParts) {
             return "{$liParts[0]}/{$liParts[1]}{$si}";
         }
 
         // Only SI has dual values: "91H/V"
-        if (null === $liParts && null !== $siParts) {
+        if (null !== $siParts) {
             return "{$li}{$siParts[0]}/{$siParts[1]}";
         }
 

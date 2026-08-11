@@ -68,19 +68,19 @@ class NameGenerator
         $parts = [];
 
         // 1. Producer
-        $producer = trim((string) ($tireRow['producer'] ?? ''));
+        $producer = RowField::text($tireRow, 'producer');
         if ('' !== $producer) {
             $parts[] = $producer;
         }
 
         // 2. Tread (model name)
-        $tread = trim((string) ($tireRow['tread'] ?? ''));
+        $tread = RowField::text($tireRow, 'tread');
         if ('' !== $tread) {
             $parts[] = $tread;
         }
 
         // 3. Size + C/CP reinforcement (appended directly without space, e.g. "195/70R15C")
-        $size = trim((string) ($tireRow['tire_size'] ?? ''));
+        $size = RowField::text($tireRow, 'tire_size');
         $reinforcement = $this->resolveReinforcement($tireRow, $classifiedParameters);
 
         if ('' !== $size) {
@@ -90,18 +90,18 @@ class NameGenerator
         }
 
         // 4. LI/SI formatted
-        $li = trim((string) ($tireRow['tire_li'] ?? ''));
-        $si = trim((string) ($tireRow['tire_si'] ?? ''));
+        $li = RowField::text($tireRow, 'tire_li');
+        $si = RowField::text($tireRow, 'tire_si');
         $lisi = LiSiFormatter::format($li, $si);
         if ('' !== $lisi) {
             $parts[] = $lisi;
         }
 
         // 5. Suffixes (vehicle-type-specific, from pre-classified parameters)
-        $vehicleType = (int) ($tireRow['id_vehicles_type'] ?? 0);
+        $vehicleType = RowField::integer($tireRow, 'id_vehicles_type');
         $suffixes = $this->suffixExtractor->extractSuffixes($vehicleType, $classifiedParameters);
         foreach ($suffixes as $suffix) {
-            $suffix = trim((string) $suffix);
+            $suffix = trim($suffix);
             if ('' !== $suffix) {
                 $parts[] = $suffix;
             }
@@ -109,7 +109,7 @@ class NameGenerator
 
         // Assemble with single spaces, collapse any multiple spaces
         $name = implode(' ', $parts);
-        $name = preg_replace('/\s{2,}/', ' ', $name);
+        $name = preg_replace('/\s{2,}/', ' ', $name) ?? $name;
 
         return trim($name);
     }
@@ -129,7 +129,7 @@ class NameGenerator
 
         return [
             'name' => $name,
-            'slug' => "{$slug}-{$tireRow['tire_id']}",
+            'slug' => $slug . '-' . RowField::integer($tireRow, 'tire_id'),
         ];
     }
 
@@ -158,15 +158,11 @@ class NameGenerator
         }
 
         // 2. Fallback: integer reinforcement column (Propel ENUM index)
-        $raw = $tireRow['reinforcement'] ?? null;
-
-        if (null === $raw || '' === (string) $raw) {
+        if ('' === RowField::text($tireRow, 'reinforcement')) {
             return '';
         }
 
-        $intVal = (int) $raw;
-
-        return self::REINFORCEMENT_INT_MAP[$intVal] ?? '';
+        return self::REINFORCEMENT_INT_MAP[RowField::integer($tireRow, 'reinforcement')] ?? '';
     }
 
 }

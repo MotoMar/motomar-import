@@ -21,7 +21,7 @@ final class CsvParser
     /** @return TireRow[] */
     public function parseFile(string $filePath): array
     {
-        $columns = $this->columns ?? Bootstrap::config()['csv_columns'];
+        $columns = $this->columns ?? Bootstrap::csvColumns();
 
         // Checked rather than suppressed with @: the suppression operator does
         // not stop a custom error handler, so the warning surfaced anyway.
@@ -78,6 +78,9 @@ final class CsvParser
     /**
      * Returns true when the line looks like a header row.
      * Checks only the first line of the file.
+     *
+     * @param string[] $fields
+     * @param string[] $columns
      */
     private function isHeaderRow(array $fields, array $columns): bool
     {

@@ -441,7 +441,7 @@ final class TireRepository
             'flag_special_price_or_discount' => 0,
             'flag_abatement'     => 0,
             'price_catalog_netto' => $data['price'],
-            'id_product_category' => Bootstrap::config()['tire_category_id'],
+            'id_product_category' => Bootstrap::tireCategoryId(),
             'slug'               => self::slug($data['name']),
             'better_slug'        => self::slug($data['name']),
             'seo'                => '',

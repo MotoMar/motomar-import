@@ -11,6 +11,8 @@ final class Bootstrap
 {
     private static Medoo  $db;
     private static Logger $logger;
+
+    /** @var array<string, mixed> */
     private static array  $config;
 
     public static function init(): void
@@ -25,7 +27,9 @@ final class Bootstrap
             }
         }
 
-        self::$config = require $root . '/config/app.php';
+        /** @var array<string, mixed> $config */
+        $config = require $root . '/config/app.php';
+        self::$config = $config;
 
         $logDir = $root . '/storage/logs';
         if (!is_dir($logDir) && !mkdir($logDir, 0755, true)) {
@@ -71,7 +75,13 @@ final class Bootstrap
         $property = $reflection->getProperty('pdo');
         $property->setAccessible(true);
 
-        return $property->getValue(self::$db);
+        $pdo = $property->getValue(self::$db);
+
+        if (!$pdo instanceof PDO) {
+            throw new \RuntimeException('Medoo nie trzyma połączenia PDO tam, gdzie się spodziewamy.');
+        }
+
+        return $pdo;
     }
 
     public static function logger(): Logger
@@ -79,9 +89,87 @@ final class Bootstrap
         return self::$logger;
     }
 
+    /** @return array<string, mixed> */
     public static function config(): array
     {
         return self::$config;
+    }
+
+    /**
+     * Column layout of the supplier CSV, in file order.
+     *
+     * @return string[]
+     */
+    public static function csvColumns(): array
+    {
+        return self::stringList('csv_columns');
+    }
+
+    /**
+     * Maps the one-letter vehicle type from the price list to our type id.
+     *
+     * A shortcut that is not in here resolves to 0 at the call site, and type 0
+     * has no classification order — see the note in ImportProcessor.
+     *
+     * @return array<string, int>
+     */
+    public static function vehicleTypeShortcuts(): array
+    {
+        $shortcuts = self::$config['vehicle_type_shortcuts'] ?? null;
+
+        if (!is_array($shortcuts)) {
+            throw new \RuntimeException('config/app.php nie zawiera `vehicle_type_shortcuts`.');
+        }
+
+        $typed = [];
+
+        foreach ($shortcuts as $shortcut => $vehicleTypeId) {
+            if (is_string($shortcut) && is_numeric($vehicleTypeId)) {
+                $typed[$shortcut] = (int) $vehicleTypeId;
+            }
+        }
+
+        return $typed;
+    }
+
+    public static function tireCategoryId(): int
+    {
+        $id = self::$config['tire_category_id'] ?? null;
+
+        if (!is_numeric($id)) {
+            throw new \RuntimeException('config/app.php nie zawiera `tire_category_id`.');
+        }
+
+        return (int) $id;
+    }
+
+    public static function uploadMaxSizeMb(): int
+    {
+        $size = self::$config['upload_max_size_mb'] ?? null;
+
+        return is_numeric($size) ? (int) $size : 10;
+    }
+
+    /**
+     * @return string[]
+     */
+    private static function stringList(string $key): array
+    {
+        $values = self::$config[$key] ?? null;
+
+        if (!is_array($values)) {
+            throw new \RuntimeException("config/app.php nie zawiera `{$key}`.");
+        }
+
+        $strings = [];
+
+        foreach ($values as $value) {
+            if (is_string($value)) {
+                $strings[] = $value;
+            }
+        }
+
+        return $strings;
     }
 
     public static function tireRepository(): \App\Domain\Tire\TireRepository
@@ -95,7 +183,13 @@ final class Bootstrap
             return;
         }
 
-        foreach (file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+        $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+        if ($lines === false) {
+            return;
+        }
+
+        foreach ($lines as $line) {
             $line = trim($line);
 
             if ($line === '' || $line[0] === '#' || !str_contains($line, '=')) {
