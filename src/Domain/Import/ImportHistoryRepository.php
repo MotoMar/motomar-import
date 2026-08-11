@@ -24,6 +24,9 @@ final class ImportHistoryRepository
 
     /**
      * Record a new import in the history.
+     *
+     * @param string[] $errorMessages
+     * @param array<string, mixed> $options
      */
     public function recordImport(
         string $producer,
@@ -35,7 +38,8 @@ final class ImportHistoryRepository
         array $options
     ): int {
         // Extract username without domain
-        $userEmail = $_SESSION['_user'] ?? Auth::email() ?? 'unknown';
+        $sessionUser = $_SESSION['_user'] ?? null;
+        $userEmail = is_string($sessionUser) ? $sessionUser : (Auth::email() ?? 'unknown');
         $username = $this->extractUsername($userEmail);
         $options = $this->withoutRemovedOptions($options);
 
@@ -56,7 +60,7 @@ final class ImportHistoryRepository
 
     /**
      * Get all imports sorted by date (newest first).
-     * @return array<int, array>
+     * @return array<int, array<string, mixed>>
      */
     public function allImports(int $limit = 100, int $offset = 0): array
     {
@@ -87,17 +91,22 @@ final class ImportHistoryRepository
 
     /**
      * Get a single import by ID.
+     *
+     * @return array<string, mixed>|null
      */
     public function getImport(int $id): ?array
     {
         try {
-            return $this->db->get('import_history', '*', ['id' => $id]) ?: null;
+            $row = $this->db->get('import_history', '*', ['id' => $id]);
+
+            return is_array($row) ? $row : null;
         } catch (\Throwable $e) {
             error_log('ImportHistoryRepository::getImport error: ' . $e->getMessage());
             return null;
         }
     }
 
+    /** @return array<string, mixed> */
     public function decodeOptions(?string $options): array
     {
         if ($options === null || $options === '') {
@@ -111,6 +120,8 @@ final class ImportHistoryRepository
 
     /**
      * Get import statistics (summary).
+     *
+     * @return array<string, int>
      */
     public function getStatistics(): array
     {
@@ -195,6 +206,11 @@ final class ImportHistoryRepository
         return $atPos !== false ? substr($email, 0, $atPos) : $email;
     }
 
+    /**
+     * @param array<string, mixed> $options
+     *
+     * @return array<string, mixed>
+     */
     private function withoutRemovedOptions(array $options): array
     {
         foreach (self::REMOVED_OPTION_KEYS as $key) {

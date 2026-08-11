@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Request;
 use App\Bootstrap;
 use App\Csrf;
 use App\Domain\Import\ImportHistoryRepository;
@@ -51,7 +52,7 @@ final class ExecuteController
 
     public function execute(): void
     {
-        if (!Csrf::validate($_POST['_csrf'] ?? '')) {
+        if (!Csrf::validate(Request::post('_csrf'))) {
             $this->redirect('execute');
             return;
         }
@@ -217,7 +218,7 @@ final class ExecuteController
 
     private function redirect(string $path): void
     {
-        $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+        $base = rtrim(dirname(Request::server('SCRIPT_NAME')), '/');
         header('Location: ' . $base . '/' . ltrim($path, '/'));
         exit;
     }

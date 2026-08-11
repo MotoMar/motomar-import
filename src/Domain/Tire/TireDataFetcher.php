@@ -180,6 +180,7 @@ class TireDataFetcher
         $stmt->bindValue(':id', $tireId, \PDO::PARAM_INT);
         $stmt->execute();
 
+        /** @var array<string, mixed>|false $row */
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
 
         return \is_array($row) ? $row : null;

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Request;
 use App\Bootstrap;
 use App\Domain\Import\ImportSession;
 use App\Domain\Tire\ImportProcessor;
@@ -152,7 +153,7 @@ final class ProducersController
 
     private function redirect(string $path): void
     {
-        $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+        $base = rtrim(dirname(Request::server('SCRIPT_NAME')), '/');
         header('Location: ' . $base . '/' . $path);
         exit;
     }

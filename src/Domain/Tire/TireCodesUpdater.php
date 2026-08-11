@@ -79,6 +79,8 @@ final class TireCodesUpdater
                     continue;
                 }
 
+                /** @var array<string, mixed> $row */
+
                 ++$tireCount;
 
                 $producerSlug = TireRepository::slug(RowField::text($row, 'producer'));

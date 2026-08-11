@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Request;
 use App\Bootstrap;
 use App\Csrf;
 use App\Domain\Import\ImportSession;
@@ -83,7 +84,7 @@ final class MappingController
 
     public function handle(): void
     {
-        if (!Csrf::validate($_POST['_csrf'] ?? '')) {
+        if (!Csrf::validate(Request::post('_csrf'))) {
             Bootstrap::logger()->warning('CSRF validation failed', ['endpoint' => '/mapping']);
             $_SESSION['_flash_error'] = 'Nieprawidłowy token bezpieczeństwa. Odśwież stronę i spróbuj ponownie.';
             $this->redirect('mapping');
@@ -191,7 +192,7 @@ final class MappingController
 
     private function redirect(string $path): void
     {
-        $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+        $base = rtrim(dirname(Request::server('SCRIPT_NAME')), '/');
         header('Location: ' . $base . '/' . ltrim($path, '/'));
         exit;
     }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Domain\Tire\RowField;
+use App\Request;
 use App\Bootstrap;
 use App\Csrf;
 use App\Domain\Csv\CsvParser;
@@ -37,7 +39,7 @@ final class UploadController
             'files_keys' => array_keys($_FILES),
         ]);
 
-        if (!Csrf::validate($_POST['_csrf'] ?? '')) {
+        if (!Csrf::validate(Request::post('_csrf'))) {
             $this->flashError('Nieprawidłowy token CSRF. Odśwież stronę i spróbuj ponownie.');
             $this->redirect('');
             return;
@@ -56,7 +58,7 @@ final class UploadController
         Bootstrap::logger()->info('File uploaded', [
             'name' => $file['name'],
             'size' => $file['size'],
-            'tmp_name' => $file['tmp_name'],
+            'tmp_name' => RowField::text($file, 'tmp_name'),
         ]);
 
         $maxBytes = Bootstrap::uploadMaxSizeMb() * 1024 * 1024;
@@ -68,7 +70,7 @@ final class UploadController
         }
 
         // Validate by extension — do not rely on MIME type which can be spoofed
-        $originalName = $file['name'] ?? '';
+        $originalName = RowField::text($file, 'name');
         if (!preg_match('/\.csv$/i', $originalName)) {
             $this->flashError('Wymagany plik z rozszerzeniem .csv');
             $this->redirect('');
@@ -86,11 +88,11 @@ final class UploadController
             'storage_dir' => dirname(__DIR__, 2) . '/storage',
         ]);
 
-        if (!move_uploaded_file($file['tmp_name'], $csvPath)) {
+        if (!move_uploaded_file(RowField::text($file, 'tmp_name'), $csvPath)) {
             Bootstrap::logger()->error('Failed to move uploaded file', [
-                'from' => $file['tmp_name'],
+                'from' => RowField::text($file, 'tmp_name'),
                 'to' => $csvPath,
-                'tmp_exists' => file_exists($file['tmp_name']),
+                'tmp_exists' => file_exists(RowField::text($file, 'tmp_name')),
                 'target_dir_exists' => is_dir(dirname($csvPath)),
                 'target_dir_writable' => is_writable(dirname($csvPath)),
             ]);
@@ -179,7 +181,7 @@ final class UploadController
             $path = '';
         }
 
-        $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+        $base = rtrim(dirname(Request::server('SCRIPT_NAME')), '/');
         header('Location: ' . $base . '/' . $path);
         exit;
     }

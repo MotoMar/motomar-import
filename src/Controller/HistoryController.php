@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Request;
 use App\Domain\Import\ImportHistoryRepository;
 
 final class HistoryController
@@ -18,7 +19,7 @@ final class HistoryController
     public function show(): void
     {
         try {
-            $page = (int) ($_GET['page'] ?? 1);
+            $page = max(1, (int) Request::query('page', '1'));
             $perPage = 20;
             $offset = ($page - 1) * $perPage;
 
@@ -38,7 +39,7 @@ final class HistoryController
     public function detail(): void
     {
         try {
-            $id = (int) ($_GET['id'] ?? 0);
+            $id = (int) Request::query('id', '0');
 
             if ($id === 0) {
                 $this->redirect('history');
@@ -66,7 +67,7 @@ final class HistoryController
 
     private function redirect(string $path): void
     {
-        $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+        $base = rtrim(dirname(Request::server('SCRIPT_NAME')), '/');
         header('Location: ' . $base . '/' . ltrim($path, '/'));
         exit;
     }
