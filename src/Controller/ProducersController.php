@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Domain\Tire\RowField;
 use App\Request;
 use App\Bootstrap;
 use App\Domain\Import\ImportSession;
@@ -101,17 +102,27 @@ final class ProducersController
             return;
         }
 
-        $newProducers = $_SESSION['new_producers'];
+        $sessionProducers = $_SESSION['new_producers'];
+        $newProducers = is_array($sessionProducers) ? $sessionProducers : [];
         $producerMapping = [];
 
         // Build mapping from form data
         foreach ($newProducers as $producer) {
-            $csvName = $producer['name'];
+            if (!is_array($producer)) {
+                continue;
+            }
+
+            $csvName = RowField::text(RowField::normalise($producer), 'name');
+
+            if ($csvName === '') {
+                continue;
+            }
+
             $nameField = 'producer_name_' . base64_encode($csvName);
             $classField = 'producer_class_' . base64_encode($csvName);
 
-            $correctedName = trim($_POST[$nameField] ?? '');
-            $classification = (int) ($_POST[$classField] ?? 2); // Default: Średnia
+            $correctedName = trim(Request::post($nameField));
+            $classification = (int) Request::post($classField, '2'); // Default: Średnia
 
             if ($correctedName === '') {
                 $correctedName = $csvName;

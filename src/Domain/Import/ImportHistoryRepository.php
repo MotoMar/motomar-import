@@ -115,7 +115,7 @@ final class ImportHistoryRepository
 
         $decoded = json_decode($options, true);
 
-        return is_array($decoded) ? $this->withoutRemovedOptions($decoded) : [];
+        return is_array($decoded) ? $this->withoutRemovedOptions(RowField::normalise($decoded)) : [];
     }
 
     /**

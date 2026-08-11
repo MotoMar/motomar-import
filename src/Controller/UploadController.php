@@ -45,10 +45,10 @@ final class UploadController
             return;
         }
 
-        $file = $_FILES['csv_file'] ?? null;
+        $file = Request::file('csv_file');
 
-        if (!is_array($file) || $file['error'] !== UPLOAD_ERR_OK) {
-            $error = is_array($file) ? ($file['error'] ?? 'unknown') : 'no file';
+        if (RowField::integer($file, 'error') !== UPLOAD_ERR_OK) {
+            $error = $file === [] ? 'no file' : RowField::text($file, 'error');
             Bootstrap::logger()->error('File upload failed', ['error' => $error, 'file' => $file]);
             $this->flashError('Nie wybrano pliku lub wystąpił błąd przesyłania.');
             $this->redirect('');
@@ -56,8 +56,8 @@ final class UploadController
         }
 
         Bootstrap::logger()->info('File uploaded', [
-            'name' => $file['name'],
-            'size' => $file['size'],
+            'name' => RowField::text($file, 'name'),
+            'size' => RowField::integer($file, 'size'),
             'tmp_name' => RowField::text($file, 'tmp_name'),
         ]);
 

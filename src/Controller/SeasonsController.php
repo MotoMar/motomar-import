@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Domain\Tire\RowField;
 use App\Request;
 use App\Bootstrap;
 use App\Csrf;
@@ -31,7 +32,10 @@ final class SeasonsController
         }
 
         $mapping = $this->session->readArray($uuid, 'mapping');
-        $newModels = array_filter($mapping, fn($m) => $m['is_new']);
+        $newModels = array_filter(
+            $mapping,
+            static fn (mixed $m): bool => is_array($m) && RowField::flag(RowField::normalise($m), 'is_new'),
+        );
         $seasons   = $this->repo->allSeasons();
 
         require dirname(__DIR__, 2) . '/templates/step3.php';
@@ -54,23 +58,30 @@ final class SeasonsController
         }
 
         $mapping        = $this->session->readArray($uuid, 'mapping');
-        $seasonPost     = $_POST['season'] ?? [];
-        $modelNamePost  = $_POST['model_name'] ?? [];
+        $seasonPost     = Request::postArray('season');
+        $modelNamePost  = Request::postArray('model_name');
 
         foreach ($mapping as $key => &$entry) {
-            if (!$entry['is_new']) {
+            if (!is_array($entry)) {
                 continue;
             }
 
-            $seasonId = (int) ($seasonPost[$key] ?? 0);
+            $entry = RowField::normalise($entry);
+
+            if (!RowField::flag($entry, 'is_new')) {
+                continue;
+            }
+
+            $modelName = RowField::text($entry, 'model_name');
+            $seasonId = RowField::integer($seasonPost, (string) $key);
 
             if ($seasonId <= 0) {
-                $_SESSION['_flash_error'] = "Nie przypisano sezonu dla modelu: {$entry['model_name']}";
+                $_SESSION['_flash_error'] = "Nie przypisano sezonu dla modelu: {$modelName}";
                 $this->redirect('seasons');
                 return;
             }
 
-            $editedName = trim($modelNamePost[$key] ?? '');
+            $editedName = trim(RowField::text($modelNamePost, (string) $key));
             if ($editedName !== '') {
                 $entry['model_name'] = mb_substr($editedName, 0, 120);
             }

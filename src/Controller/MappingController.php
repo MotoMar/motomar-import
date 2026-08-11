@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Domain\Tire\RowField;
 use App\Request;
 use App\Bootstrap;
 use App\Csrf;
@@ -66,8 +67,8 @@ final class MappingController
             try {
                 $producer = $this->repo->producerByName($name);
                 if ($producer !== null) {
-                    $treads = $this->repo->treadsByProducer($producer['id']);
-                    if ($treads !== null && is_array($treads)) {
+                    $treads = $this->repo->treadsByProducer(RowField::integer($producer, 'id'));
+                    if ($treads !== []) {
                         $treadsByProducer[$name] = $treads;
                     }
                 }
@@ -105,28 +106,37 @@ final class MappingController
         Bootstrap::logger()->info('Mapping form submitted', [
             'uuid' => $uuid,
             'models_count' => count($models),
-            'post_action_keys' => array_keys($_POST['action'] ?? []),
-            'post_existing_tread_keys' => array_keys($_POST['existing_tread'] ?? []),
+            'post_action_keys' => array_keys(Request::postArray('action')),
+            'post_existing_tread_keys' => array_keys(Request::postArray('existing_tread')),
             'post_keys' => array_keys($_POST),
         ]);
 
-        foreach ($models as $key => $model) {
-            $producerName = $model['producer_name'];
-            $modelName    = $model['model_name'];
+        $actionPost = Request::postArray('action');
+        $existingTreadPost = Request::postArray('existing_tread');
+        $newProducerNamePost = Request::postArray('new_producer_name');
 
-            $action = $_POST['action'][$key] ?? 'existing';
+        foreach ($models as $key => $model) {
+            if (!is_array($model)) {
+                continue;
+            }
+
+            $model = RowField::normalise($model);
+            $producerName = RowField::text($model, 'producer_name');
+            $modelName    = RowField::text($model, 'model_name');
+
+            $action = RowField::text($actionPost, (string) $key) ?: 'existing';
 
             Bootstrap::logger()->debug('Processing model', [
                 'key' => $key,
                 'producer' => $producerName,
                 'model' => $modelName,
                 'action' => $action,
-                'has_existing_tread' => isset($_POST['existing_tread'][$key]),
-                'existing_tread_value' => $_POST['existing_tread'][$key] ?? null,
+                'has_existing_tread' => isset($existingTreadPost[(string) $key]),
+                'existing_tread_value' => RowField::nullableText($existingTreadPost, (string) $key),
             ]);
 
             if ($action === 'existing') {
-                $treadId = (int) ($_POST['existing_tread'][$key] ?? 0);
+                $treadId = RowField::integer($existingTreadPost, (string) $key);
 
                 if ($treadId === 0) {
                     $_SESSION['_flash_error'] = "Nie wybrano modelu z bazy dla: {$producerName} / {$modelName}";
@@ -146,7 +156,7 @@ final class MappingController
                     'producer_name' => $producerName,
                     'model_name'    => $modelName,
                     'tread_id'      => $treadId,
-                    'season_id'     => (int) ($tread['season_id'] ?? 0),
+                    'season_id'     => RowField::integer($tread, 'season_id'),
                     'is_new'        => false,
                 ];
             }
@@ -156,7 +166,7 @@ final class MappingController
 
                 $producerInDb = $this->repo->producerByName($producerName);
                 if ($producerInDb === null) {
-                    $submittedName = trim($_POST['new_producer_name'][$key] ?? $producerName);
+                    $submittedName = trim(RowField::text($newProducerNamePost, (string) $key)) ?: $producerName;
                     if ($submittedName === '') {
                         $submittedName = $producerName;
                     }

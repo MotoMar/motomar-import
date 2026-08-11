@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Domain\Tire\RowField;
 use App\Request;
 use App\Domain\Import\ImportHistoryRepository;
 
@@ -45,17 +46,20 @@ final class HistoryController
                 $this->redirect('history');
             }
 
-            $import = $this->history->getImport($id);
+            $import = $this->history->getImport($id) ?? [];
 
-            if ($import === null) {
+            if ($import === []) {
                 $this->redirect('history');
             }
 
             // Decode JSON fields
-            if ($import['error_messages']) {
-                $import['error_messages'] = json_decode($import['error_messages'], true) ?? [];
+            $rawErrors = RowField::nullableText($import, 'error_messages');
+
+            if ($rawErrors !== null && $rawErrors !== '') {
+                $import['error_messages'] = json_decode($rawErrors, true) ?? [];
             }
-            $import['options'] = $this->history->decodeOptions($import['options'] ?? null);
+
+            $import['options'] = $this->history->decodeOptions(RowField::nullableText($import, 'options'));
 
             require dirname(__DIR__, 2) . '/templates/history-detail.php';
         } catch (\Throwable $e) {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Domain\Tire\RowField;
 use App\Request;
 use App\Auth;
 use App\Bootstrap;
@@ -33,24 +34,28 @@ final class LoginController
             return;
         }
 
-        $email    = trim($_POST['email'] ?? '');
-        $password = $_POST['password'] ?? '';
+        $email    = trim(Request::post('email'));
+        $password = Request::post('password');
 
         $user = Bootstrap::db()->get(
             'users',
             ['id', 'email', 'hashed_password'],
             ['email' => $email]
         );
+        $user = is_array($user) ? $user : null;
 
-        if ($user === null || !password_verify($password, $user['hashed_password'])) {
+        if ($user === null || !password_verify($password, RowField::text($user, 'hashed_password'))) {
             Bootstrap::logger()->warning('Failed login attempt', ['email' => $email]);
             $_SESSION['_flash_error'] = 'Nieprawidłowy e-mail lub hasło.';
             $this->redirect('login');
             return;
         }
 
-        Auth::login((int) $user['id'], $user['email']);
-        Bootstrap::logger()->info('User logged in', ['id' => $user['id'], 'email' => $user['email']]);
+        $userId = RowField::integer($user, 'id');
+        $userEmail = RowField::text($user, 'email');
+
+        Auth::login($userId, $userEmail);
+        Bootstrap::logger()->info('User logged in', ['id' => $userId, 'email' => $userEmail]);
         $this->redirect('');
     }
 

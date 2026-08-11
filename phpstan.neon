@@ -1,15 +1,17 @@
-includes:
-    # 240 pre-existing errors, almost all of them untyped arrays and casts of
-    # `mixed` coming back from Medoo. Debt to burn down, not a permission slip —
-    # anything written from now on has to pass level 9 without being added here.
-    - phpstan-baseline.neon
-
 parameters:
     level: 9
+
+    # No baseline. There was one, with 240 entries; it is gone because the
+    # errors are. Adding it back would mean deciding that some of this code is
+    # allowed to lie about its types again.
     paths:
         - src
         - bin
         - tests
+
+    stubFiles:
+        - phpstan/medoo.stub
+
     excludePaths:
         analyse:
             # Throwaway scripts kept in the webroot for poking at a broken
