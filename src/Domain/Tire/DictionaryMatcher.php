@@ -24,20 +24,52 @@ class DictionaryMatcher
     private array $codesByKind = [];
 
     /**
-     * @param \PDO $pdo active database connection
+     * @param array<string, string[]> $codesByKind Dictionary codes grouped by kind
      */
-    public function __construct(\PDO $pdo)
+    private function __construct(array $codesByKind)
+    {
+        $this->codesByKind = $codesByKind;
+    }
+
+    /**
+     * Load the dictionary from `tires_dictionary`.
+     */
+    public static function fromPdo(\PDO $pdo): self
     {
         $stmt = $pdo->query('SELECT kind, code FROM tires_dictionary');
+
         if (false === $stmt) {
             throw new \RuntimeException('Failed to query tires_dictionary table.');
         }
 
-        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $kind = (string) $row['kind'];
-            $code = (string) $row['code'];
-            $this->codesByKind[$kind][] = $code;
+        $codesByKind = [];
+
+        /** @var array<string, mixed> $row */
+        foreach ($stmt->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+            $kind = $row['kind'] ?? null;
+            $code = $row['code'] ?? null;
+
+            if (!is_string($kind) || !is_string($code) || '' === $kind || '' === $code) {
+                continue;
+            }
+
+            $codesByKind[$kind][] = $code;
         }
+
+        return new self($codesByKind);
+    }
+
+    /**
+     * Build the dictionary from an in-memory map.
+     *
+     * The classification rules are worth testing without a database — this is
+     * how the tests get a dictionary without one.
+     *
+     * @param array<string, string[]> $codesByKind Dictionary codes grouped by kind
+     */
+    public static function fromCodes(array $codesByKind): self
+    {
+        return new self($codesByKind);
     }
 
     /**
@@ -50,39 +82,6 @@ class DictionaryMatcher
     private function getCodesForKind(string $kind): array
     {
         return $this->codesByKind[$kind] ?? [];
-    }
-
-    /**
-     * Return all loaded dictionary kinds.
-     *
-     * @return string[]
-     */
-    private function getKinds(): array
-    {
-        return array_keys($this->codesByKind);
-    }
-
-    /**
-     * Check whether a parameter value matches any code within the given
-     * dictionary kind. Comparison is case-insensitive and whitespace-trimmed.
-     *
-     * @param string $parameter the tire parameter value to test
-     * @param string $kind      the dictionary kind to match against
-     *
-     * @return bool true when the parameter matches a code in the kind
-     */
-    private function matchParameterToKind(string $parameter, string $kind): bool
-    {
-        $codes = $this->getCodesForKind($kind);
-        $normalised = mb_strtolower(trim($parameter), 'UTF-8');
-
-        foreach ($codes as $code) {
-            if ($normalised === mb_strtolower(trim($code), 'UTF-8')) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**

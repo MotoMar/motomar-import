@@ -18,7 +18,7 @@ Projekt jest częścią większego ekosystemu motomar-php, obsługującego sklep
 
 ## Architektura
 
-- **Język**: PHP 8+ z strict types.
+- **Język**: PHP 8.5 z strict types.
 - **Baza danych**: MySQL/PostgreSQL via Medoo.
 - **Struktura katalogów**:
   - `src/Domain/Tire/`: Klasy biznesowe (TireRepository, DictionaryMatcher, TireParametersBuilder).
@@ -32,7 +32,7 @@ Projekt jest częścią większego ekosystemu motomar-php, obsługującego sklep
 
 ## Wymagania
 
-- PHP 8.0+
+- PHP 8.5
 - Composer
 - Baza danych MySQL/PostgreSQL
 - Dostęp do plików CSV/XML z danymi opon
@@ -95,12 +95,43 @@ W porównaniu do starego systemu:
 - Obsługa `tires_dictionary` dla tłumaczeń.
 - Moduł `pricing` dla cen katalogowych (aktywny przy zaznaczonym checkboxie).
 
+## Nazwa produktu i parametry klasyfikowane
+
+Nazwa opony nie jest sklejana z cennika. Powstaje wyłącznie z
+`tires_classified_parameters`:
+
+```
+tires.other → TireParametersBuilder → tires_classified_parameters (JSON)
+tires_classified_parameters → SuffixExtractor → NameGenerator → products.name
+```
+
+Wynika z tego kolejność, której trzeba pilnować przy każdej zmianie w imporcie:
+**klasyfikację odświeżamy przed wygenerowaniem nazwy**. Nieodświeżona
+klasyfikacja nie wywala się głośno — daje starą nazwę i oponę bez znacznika
+(np. bez `EV`), której nikt nie zauważy poza kupującym.
+
+Ten sam moduł żyje w motomar-php jako `src/ProductName` i tam obsługuje go
+zadanie `php symfony regenerateProductsNames` (dry-run domyślnie, `--execute`
+zapisuje). Klasy są **skopiowane, nie współdzielone** — rozjazd między kopiami
+przechodzi bez śladu.
+
+### Slug
+
+`products.better_slug` to adres, z którego serwuje sklep, i zawsze idzie za
+nazwą. `products.slug` jest starszy i zapisujemy go **tylko dla produktu
+utworzonego przed chwilą** — nadpisanie go na istniejącym produkcie wycofuje
+zaindeksowany adres. Na produkcji te dwie kolumny różnią się dla 109 739 ze
+118 983 opon.
+
 ## Testowanie
 
-Uruchom testy PHPUnit:
 ```bash
-php vendor/bin/phpunit
+composer test     # pest
+composer stan     # phpstan level 9
 ```
+
+PHPStan chodzi na poziomie 9 z baseline'em na 240 zastanych błędów — nowy kod
+musi przechodzić bez dopisywania się do niego.
 
 ## Przyczynianie się
 

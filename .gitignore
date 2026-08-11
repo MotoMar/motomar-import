@@ -3,4 +3,7 @@
 vendor/
 storage/imports/*/
 storage/logs/
-composer.lock
+.phpunit.cache/
+
+# composer.lock is committed on purpose — this is an application, not a library,
+# and everyone running the import should get the same dependency versions.

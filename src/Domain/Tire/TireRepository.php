@@ -200,6 +200,15 @@ final class TireRepository
         $this->db->update('products', ['price_catalog_netto' => $price], ['id' => $productId]);
     }
 
+    /**
+     * Write the marker columns for an existing tire.
+     *
+     * `other` is written here alongside `all_markers`. Leaving it out is what
+     * produced 368 tires with markers but no raw string: they were created by
+     * the legacy import without `other` and every price list since then filled
+     * `all_markers` while `other` stayed empty. The two columns describe the
+     * same thing and have to move together.
+     */
     public function updateTireInne(int $tireId, array $inne): void
     {
         $fields = [
@@ -211,9 +220,38 @@ final class TireRepository
             'ex_approval'      => $inne['ex_approval'],
             'ex_other'         => $inne['ex_other'],
             'all_markers'      => $inne['all_markers'],
+            'other'            => $inne['other'],
         ];
 
         $this->db->update('tires', $fields, ['id' => $tireId]);
+    }
+
+    /**
+     * Rebuild `tires_classified_parameters` for an existing tire from `other`.
+     *
+     * The classification is what the product name, the Allegro offer title and
+     * the offer parameters are all built from, and until now only the creation
+     * path wrote it. A tire that gained `EV` in this year's price list kept a
+     * classification from the day it was created.
+     *
+     * The vehicle type comes from the database rather than the CSV shortcut:
+     * an unknown shortcut resolves to 0, and type 0 has no classification order,
+     * which would quietly store `{}` over a good classification.
+     */
+    public function refreshClassifiedParameters(int $tireId, string $other): void
+    {
+        $vehicleTypeId = $this->db->get('tires', 'id_vehicles_type', ['id' => $tireId]);
+
+        if (!is_numeric($vehicleTypeId)) {
+            return;
+        }
+
+        $parameters = $this->classifyTireParameters($tireId, [
+            'vehicle_type_id' => (int) $vehicleTypeId,
+            'other'           => $other,
+        ]);
+
+        TireParametersBuilder::upsert(Bootstrap::pdo(), $tireId, $parameters);
     }
 
     public function weightByDimensions(int $widthId, int $constructionId, int $profileId, int $vehicleTypeId): float
@@ -305,13 +343,33 @@ final class TireRepository
         }
     }
 
-    public function updateProductNameAndSlug(int $productId, string $name, string $slug): void
-    {
-        $this->db->update('products', [
+    /**
+     * Store a regenerated name and slug.
+     *
+     * `better_slug` is the address the shop serves from, so it always follows
+     * the name. `slug` is the older one and is only written for a product that
+     * has just been created — overwriting it on an existing product retires a
+     * URL that is already indexed and linked. On production the two disagree
+     * for 109 739 of 118 983 tires, which is what that column is for.
+     *
+     * `regenerateProductsNames` in motomar-php makes the same distinction.
+     */
+    public function updateProductNameAndSlug(
+        int $productId,
+        string $name,
+        string $slug,
+        bool $isNewProduct = false,
+    ): void {
+        $fields = [
             'name'        => $name,
-            'slug'        => $slug,
             'better_slug' => $slug,
-        ], ['id' => $productId]);
+        ];
+
+        if ($isNewProduct) {
+            $fields['slug'] = $slug;
+        }
+
+        $this->db->update('products', $fields, ['id' => $productId]);
     }
 
     public function archiveOldName(int $productId, string $oldName): void
@@ -393,6 +451,7 @@ final class TireRepository
             'ceneo_id'           => '',
             'skapiec_id'         => '',
             'ceneo'              => '',
+            'created_at'         => date('Y-m-d H:i:s'),
         ]);
 
         $productId = (int) $this->db->id();
@@ -451,12 +510,11 @@ final class TireRepository
             'id_tires_marker'       => 1,
         ]);
 
-        // Create tires_classified_parameters entry with classified parameters
+        // Create tires_classified_parameters entry with classified parameters.
+        // Upsert rather than insert: a leftover row for a recycled id would
+        // otherwise abort the whole CSV row on a duplicate key.
         $classified = $this->classifyTireParameters($productId, $data);
-        $this->db->insert('tires_classified_parameters', [
-            'id_tire'    => $productId,
-            'parameters' => TireParametersBuilder::toJson($classified),
-        ]);
+        TireParametersBuilder::upsert(Bootstrap::pdo(), $productId, $classified);
 
         // Create price group entries
         $this->createPriceGroups($productId, $data['price']);
@@ -469,7 +527,7 @@ final class TireRepository
     private function getDictionaryMatcher(): DictionaryMatcher
     {
         if (self::$dictionaryMatcher === null) {
-            self::$dictionaryMatcher = new DictionaryMatcher(Bootstrap::pdo());
+            self::$dictionaryMatcher = DictionaryMatcher::fromPdo(Bootstrap::pdo());
         }
         return self::$dictionaryMatcher;
     }

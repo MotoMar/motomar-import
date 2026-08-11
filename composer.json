@@ -2,18 +2,32 @@
     "name": "motomar/tire-import",
     "description": "Tire price list import — 3-step process: upload, model mapping, season assignment",
     "type": "project",
+    "require": {
+        "php": "^8.5",
+        "catfan/medoo": "^2.5"
+    },
+    "require-dev": {
+        "pestphp/pest": "^4.7",
+        "phpstan/phpstan": "^2.2"
+    },
     "autoload": {
         "psr-4": {
             "App\\": "src/"
         }
     },
-    "require": {
-        "php": "^8.3",
-        "catfan/medoo": "^2.2"
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
     },
     "config": {
-        "platform": {
-            "php": "8.3.0"
-        }
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        },
+        "sort-packages": true
+    },
+    "scripts": {
+        "test": "pest",
+        "stan": "phpstan analyse --memory-limit=1G"
     }
 }

@@ -1,0 +1,1165 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 1
+			path: src/Auth.php
+
+		-
+			message: '#^Method App\\Auth\:\:email\(\) should return string\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Auth.php
+
+		-
+			message: '#^Argument of an invalid type list\<string\>\|false supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: src/Bootstrap.php
+
+		-
+			message: '#^Method App\\Bootstrap\:\:config\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Bootstrap.php
+
+		-
+			message: '#^Method App\\Bootstrap\:\:pdo\(\) should return PDO but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Bootstrap.php
+
+		-
+			message: '#^Property App\\Bootstrap\:\:\$config type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Bootstrap.php
+
+		-
+			message: '#^Cannot access offset ''is_new'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Controller/ExecuteController.php
+
+		-
+			message: '#^Cannot call method beginTransaction\(\) on PDO\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Controller/ExecuteController.php
+
+		-
+			message: '#^Cannot call method commit\(\) on PDO\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Controller/ExecuteController.php
+
+		-
+			message: '#^Cannot call method inTransaction\(\) on PDO\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Controller/ExecuteController.php
+
+		-
+			message: '#^Cannot call method rollBack\(\) on PDO\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Controller/ExecuteController.php
+
+		-
+			message: '#^Method App\\Controller\\ExecuteController\:\:createNewTreads\(\) has parameter \$mapping with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Controller/ExecuteController.php
+
+		-
+			message: '#^Method App\\Controller\\ExecuteController\:\:createNewTreads\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Controller/ExecuteController.php
+
+		-
+			message: '#^Parameter \#1 \$array of function array_column expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/ExecuteController.php
+
+		-
+			message: '#^Parameter \#1 \$array of function array_filter expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/ExecuteController.php
+
+		-
+			message: '#^Parameter \#1 \$mapping of method App\\Controller\\ExecuteController\:\:createNewTreads\(\) expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/ExecuteController.php
+
+		-
+			message: '#^Parameter \#1 \$path of function dirname expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/ExecuteController.php
+
+		-
+			message: '#^Parameter \#1 \$token of static method App\\Csrf\:\:validate\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/ExecuteController.php
+
+		-
+			message: '#^Parameter \#2 \$callback of function array_filter expects \(callable\(mixed\)\: bool\)\|null, Closure\(mixed\)\: mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/ExecuteController.php
+
+		-
+			message: '#^Parameter \#2 \$mapping of method App\\Domain\\Tire\\ImportProcessor\:\:preview\(\) expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/ExecuteController.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 2
+			path: src/Controller/HistoryController.php
+
+		-
+			message: '#^Offset ''error_messages'' might not exist on array\|null\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: src/Controller/HistoryController.php
+
+		-
+			message: '#^Parameter \#1 \$path of function dirname expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/HistoryController.php
+
+		-
+			message: '#^Cannot access offset ''email'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: src/Controller/LoginController.php
+
+		-
+			message: '#^Cannot access offset ''hashed_password'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Controller/LoginController.php
+
+		-
+			message: '#^Cannot access offset ''id'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: src/Controller/LoginController.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 1
+			path: src/Controller/LoginController.php
+
+		-
+			message: '#^Parameter \#1 \$password of function password_verify expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/LoginController.php
+
+		-
+			message: '#^Parameter \#1 \$path of function dirname expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/LoginController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/LoginController.php
+
+		-
+			message: '#^Parameter \#1 \$token of static method App\\Csrf\:\:validate\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/LoginController.php
+
+		-
+			message: '#^Parameter \#2 \$email of static method App\\Auth\:\:login\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/LoginController.php
+
+		-
+			message: '#^Parameter \#2 \$hash of function password_verify expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/LoginController.php
+
+		-
+			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: src/Controller/MappingController.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\<int, array\{id\: int, tread\: string, season_id\: int\|null\}\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Controller/MappingController.php
+
+		-
+			message: '#^Cannot access offset ''model_name'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Controller/MappingController.php
+
+		-
+			message: '#^Cannot access offset ''producer_name'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Controller/MappingController.php
+
+		-
+			message: '#^Cannot access offset mixed on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 5
+			path: src/Controller/MappingController.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 1
+			path: src/Controller/MappingController.php
+
+		-
+			message: '#^Parameter \#1 \$array of function array_keys expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 3
+			path: src/Controller/MappingController.php
+
+		-
+			message: '#^Parameter \#1 \$array of function array_values expects array\<T\>, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/MappingController.php
+
+		-
+			message: '#^Parameter \#1 \$name of method App\\Domain\\Tire\\TireRepository\:\:createProducer\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/MappingController.php
+
+		-
+			message: '#^Parameter \#1 \$name of method App\\Domain\\Tire\\TireRepository\:\:producerByName\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/MappingController.php
+
+		-
+			message: '#^Parameter \#1 \$path of function dirname expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/MappingController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/MappingController.php
+
+		-
+			message: '#^Parameter \#1 \$token of static method App\\Csrf\:\:validate\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/MappingController.php
+
+		-
+			message: '#^Parameter \#1 \$value of function count expects array\|Countable, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/MappingController.php
+
+		-
+			message: '#^Part \$modelName \(mixed\) of encapsed string cannot be cast to string\.$#'
+			identifier: encapsedStringPart.nonString
+			count: 1
+			path: src/Controller/MappingController.php
+
+		-
+			message: '#^Part \$producerName \(mixed\) of encapsed string cannot be cast to string\.$#'
+			identifier: encapsedStringPart.nonString
+			count: 1
+			path: src/Controller/MappingController.php
+
+		-
+			message: '#^Possibly invalid array key type mixed\.$#'
+			identifier: offsetAccess.invalidOffset
+			count: 2
+			path: src/Controller/MappingController.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between array\<int, array\{id\: int, tread\: string, season_id\: int\|null\}\> and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/Controller/MappingController.php
+
+		-
+			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: src/Controller/ProducersController.php
+
+		-
+			message: '#^Cannot access offset ''name'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Controller/ProducersController.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 1
+			path: src/Controller/ProducersController.php
+
+		-
+			message: '#^Parameter \#1 \$path of function dirname expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/ProducersController.php
+
+		-
+			message: '#^Parameter \#1 \$producerMapping of method App\\Domain\\Tire\\ImportProcessor\:\:createProducers\(\) expects array\<string, array\{name\: string, classification\: int\}\>, array\<array\{name\: mixed, classification\: int\}\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/ProducersController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function base64_encode expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/ProducersController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/ProducersController.php
+
+		-
+			message: '#^Possibly invalid array key type mixed\.$#'
+			identifier: offsetAccess.invalidOffset
+			count: 1
+			path: src/Controller/ProducersController.php
+
+		-
+			message: '#^Argument of an invalid type mixed supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: src/Controller/SeasonsController.php
+
+		-
+			message: '#^Cannot access offset ''is_new'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: src/Controller/SeasonsController.php
+
+		-
+			message: '#^Cannot access offset ''model_name'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: src/Controller/SeasonsController.php
+
+		-
+			message: '#^Cannot access offset ''season_id'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Controller/SeasonsController.php
+
+		-
+			message: '#^Cannot access offset mixed on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: src/Controller/SeasonsController.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 1
+			path: src/Controller/SeasonsController.php
+
+		-
+			message: '#^Parameter \#1 \$array of function array_filter expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/SeasonsController.php
+
+		-
+			message: '#^Parameter \#1 \$path of function dirname expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/SeasonsController.php
+
+		-
+			message: '#^Parameter \#1 \$string of function trim expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/SeasonsController.php
+
+		-
+			message: '#^Parameter \#1 \$token of static method App\\Csrf\:\:validate\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/SeasonsController.php
+
+		-
+			message: '#^Parameter \#2 \$callback of function array_filter expects \(callable\(mixed\)\: bool\)\|null, Closure\(mixed\)\: mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/SeasonsController.php
+
+		-
+			message: '#^Part \$entry\[''model_name''\] \(mixed\) of encapsed string cannot be cast to string\.$#'
+			identifier: encapsedStringPart.nonString
+			count: 1
+			path: src/Controller/SeasonsController.php
+
+		-
+			message: '#^Parameter \#1 \$filename of function file_exists expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/UploadController.php
+
+		-
+			message: '#^Parameter \#1 \$from of function move_uploaded_file expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/UploadController.php
+
+		-
+			message: '#^Parameter \#1 \$path of function dirname expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/UploadController.php
+
+		-
+			message: '#^Parameter \#1 \$token of static method App\\Csrf\:\:validate\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/UploadController.php
+
+		-
+			message: '#^Parameter \#2 \$subject of function preg_match expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/UploadController.php
+
+		-
+			message: '#^Method App\\Csrf\:\:token\(\) should return string but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Csrf.php
+
+		-
+			message: '#^Parameter \#1 \$known_string of function hash_equals expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Csrf.php
+
+		-
+			message: '#^Method App\\Domain\\Csv\\CsvParser\:\:isHeaderRow\(\) has parameter \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Csv/CsvParser.php
+
+		-
+			message: '#^Method App\\Domain\\Csv\\CsvParser\:\:isHeaderRow\(\) has parameter \$fields with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Csv/CsvParser.php
+
+		-
+			message: '#^Method App\\Domain\\Csv\\TireRow\:\:__construct\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Csv/TireRow.php
+
+		-
+			message: '#^Parameter \#1 \$haystack of function strrpos expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Domain/Csv/TireRow.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function str_replace expects array\<string\>\|string, string\|null given\.$#'
+			identifier: argument.type
+			count: 3
+			path: src/Domain/Csv/TireRow.php
+
+		-
+			message: '#^Cannot access offset ''total_created'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Domain/Import/ImportHistoryRepository.php
+
+		-
+			message: '#^Cannot access offset ''total_errors'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Domain/Import/ImportHistoryRepository.php
+
+		-
+			message: '#^Cannot access offset ''total_imports'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Domain/Import/ImportHistoryRepository.php
+
+		-
+			message: '#^Cannot access offset ''total_skipped'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Domain/Import/ImportHistoryRepository.php
+
+		-
+			message: '#^Cannot access offset ''total_updated'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Domain/Import/ImportHistoryRepository.php
+
+		-
+			message: '#^Cannot call method fetch\(\) on PDOStatement\|false\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Domain/Import/ImportHistoryRepository.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 5
+			path: src/Domain/Import/ImportHistoryRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Import\\ImportHistoryRepository\:\:allImports\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Import/ImportHistoryRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Import\\ImportHistoryRepository\:\:decodeOptions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Import/ImportHistoryRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Import\\ImportHistoryRepository\:\:getImport\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Import/ImportHistoryRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Import\\ImportHistoryRepository\:\:getImport\(\) should return array\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Domain/Import/ImportHistoryRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Import\\ImportHistoryRepository\:\:getStatistics\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Import/ImportHistoryRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Import\\ImportHistoryRepository\:\:recordImport\(\) has parameter \$errorMessages with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Import/ImportHistoryRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Import\\ImportHistoryRepository\:\:recordImport\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Import/ImportHistoryRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Import\\ImportHistoryRepository\:\:withoutRemovedOptions\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Import/ImportHistoryRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Import\\ImportHistoryRepository\:\:withoutRemovedOptions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Import/ImportHistoryRepository.php
+
+		-
+			message: '#^Method Medoo\\Medoo\:\:select\(\) invoked with 3 parameters, 4 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: src/Domain/Import/ImportHistoryRepository.php
+
+		-
+			message: '#^Parameter \#1 \$email of method App\\Domain\\Import\\ImportHistoryRepository\:\:extractUsername\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Domain/Import/ImportHistoryRepository.php
+
+		-
+			message: '#^Parameter \#2 \$join of method Medoo\\Medoo\:\:select\(\) expects array, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Domain/Import/ImportHistoryRepository.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 1
+			path: src/Domain/Import/ImportSession.php
+
+		-
+			message: '#^Method App\\Domain\\Import\\ImportSession\:\:uuid\(\) should return string\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Domain/Import/ImportSession.php
+
+		-
+			message: '#^Parameter \#1 \$json of function json_decode expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Domain/Import/ImportSession.php
+
+		-
+			message: '#^Call to function is_string\(\) with array\{name\: string, classification\: int\} will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: src/Domain/Tire/ImportProcessor.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\ImportProcessor\:\:buildLabelUpdate\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Tire/ImportProcessor.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\ImportProcessor\:\:create\(\) has parameter \$producer with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Tire/ImportProcessor.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\ImportProcessor\:\:preview\(\) has parameter \$mapping with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Tire/ImportProcessor.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\ImportProcessor\:\:processRow\(\) has parameter \$mapping with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Tire/ImportProcessor.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\ImportProcessor\:\:resolveInne\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Tire/ImportProcessor.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\ImportProcessor\:\:run\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Tire/ImportProcessor.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\ImportProcessor\:\:update\(\) has parameter \$producer with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Tire/ImportProcessor.php
+
+		-
+			message: '#^Offset ''classification'' on array\{name\: string, classification\: int\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Domain/Tire/ImportProcessor.php
+
+		-
+			message: '#^Parameter \#2 \$oldName of method App\\Domain\\Tire\\TireRepository\:\:archiveOldName\(\) expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Domain/Tire/ImportProcessor.php
+
+		-
+			message: '#^Property App\\Domain\\Tire\\ImportProcessor\:\:\$options type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Tire/ImportProcessor.php
+
+		-
+			message: '#^Property App\\Domain\\Tire\\ImportProcessor\:\:\$producerCache type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Tire/ImportProcessor.php
+
+		-
+			message: '#^Property App\\Domain\\Tire\\ImportProcessor\:\:\$stats type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Tire/ImportProcessor.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between mixed and null will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: src/Domain/Tire/ImportProcessor.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between null and null will always evaluate to true\.$#'
+			identifier: identical.alwaysTrue
+			count: 2
+			path: src/Domain/Tire/LiSiFormatter.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 2
+			path: src/Domain/Tire/NameGenerator.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 6
+			path: src/Domain/Tire/NameGenerator.php
+
+		-
+			message: '#^Parameter \#1 \$string of function trim expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Domain/Tire/NameGenerator.php
+
+		-
+			message: '#^Part \$tireRow\[''tire_id''\] \(mixed\) of encapsed string cannot be cast to string\.$#'
+			identifier: encapsedStringPart.nonString
+			count: 1
+			path: src/Domain/Tire/NameGenerator.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\SlugGenerator\:\:generate\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Domain/Tire/SlugGenerator.php
+
+		-
+			message: '#^Parameter \#1 \$string of function trim expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Domain/Tire/SlugGenerator.php
+
+		-
+			message: '#^Cannot access offset ''ean'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Domain/Tire/TireCodesUpdater.php
+
+		-
+			message: '#^Cannot access offset ''id'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Domain/Tire/TireCodesUpdater.php
+
+		-
+			message: '#^Cannot access offset ''price_catalog_netto'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Domain/Tire/TireCodesUpdater.php
+
+		-
+			message: '#^Cannot access offset ''producer'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Domain/Tire/TireCodesUpdater.php
+
+		-
+			message: '#^Cannot access offset ''ref'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Domain/Tire/TireCodesUpdater.php
+
+		-
+			message: '#^Cannot access offset ''ref2'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Domain/Tire/TireCodesUpdater.php
+
+		-
+			message: '#^Cannot call method beginTransaction\(\) on PDO\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Domain/Tire/TireCodesUpdater.php
+
+		-
+			message: '#^Cannot call method commit\(\) on PDO\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Domain/Tire/TireCodesUpdater.php
+
+		-
+			message: '#^Cannot call method exec\(\) on PDO\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Domain/Tire/TireCodesUpdater.php
+
+		-
+			message: '#^Cannot call method inTransaction\(\) on PDO\|null\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: src/Domain/Tire/TireCodesUpdater.php
+
+		-
+			message: '#^Cannot call method prepare\(\) on PDO\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Domain/Tire/TireCodesUpdater.php
+
+		-
+			message: '#^Cannot call method query\(\) on PDO\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Domain/Tire/TireCodesUpdater.php
+
+		-
+			message: '#^Cannot call method rollBack\(\) on PDO\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Domain/Tire/TireCodesUpdater.php
+
+		-
+			message: '#^Cannot cast mixed to float\.$#'
+			identifier: cast.double
+			count: 1
+			path: src/Domain/Tire/TireCodesUpdater.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 1
+			path: src/Domain/Tire/TireCodesUpdater.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 4
+			path: src/Domain/Tire/TireCodesUpdater.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\TireDataFetcher\:\:fetchTireById\(\) should return array\<string, mixed\>\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Domain/Tire/TireDataFetcher.php
+
+		-
+			message: '#^Parameter \#1 \$json of static method App\\Domain\\Tire\\TireParametersBuilder\:\:fromJson\(\) expects string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Domain/Tire/TireDataFetcher.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 1
+			path: src/Domain/Tire/TireParametersBuilder.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: src/Domain/Tire/TireParametersBuilder.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\TireParametersBuilder\:\:fromJson\(\) should return array\<string, array\<string\>\> but returns array\<mixed, mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Domain/Tire/TireParametersBuilder.php
+
+		-
+			message: '#^Cannot access offset ''ref'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Cannot access offset ''ref2'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Cannot call method lastInsertId\(\) on PDO\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Cannot call method prepare\(\) on PDO\|null\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Cannot cast mixed to float\.$#'
+			identifier: cast.double
+			count: 1
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 4
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 2
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\TireRepository\:\:classifyTireParameters\(\) has parameter \$tireData with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\TireRepository\:\:classifyTireParameters\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\TireRepository\:\:constructionId\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\TireRepository\:\:createProducer\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\TireRepository\:\:createTire\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\TireRepository\:\:loadIndexId\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\TireRepository\:\:markersByValues\(\) has parameter \$values with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\TireRepository\:\:markersByValues\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\TireRepository\:\:producerByName\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\TireRepository\:\:producerByName\(\) should return array\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\TireRepository\:\:profileId\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\TireRepository\:\:speedIndexId\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\TireRepository\:\:tireByEan\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\TireRepository\:\:tireByEan\(\) should return array\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\TireRepository\:\:tireByRefAndProducer\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\TireRepository\:\:tireByRefAndProducer\(\) should return array\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\TireRepository\:\:treadById\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\TireRepository\:\:treadById\(\) should return array\|null but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\TireRepository\:\:updateTireInne\(\) has parameter \$inne with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\TireRepository\:\:updateTireLabels\(\) has parameter \$fields with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Method App\\Domain\\Tire\\TireRepository\:\:widthId\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Method Medoo\\Medoo\:\:select\(\) invoked with 3 parameters, 4 required\.$#'
+			identifier: arguments.count
+			count: 5
+			path: src/Domain/Tire/TireRepository.php
+
+		-
+			message: '#^Method App\\Logger\:\:debug\(\) has parameter \$context with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Logger.php
+
+		-
+			message: '#^Method App\\Logger\:\:error\(\) has parameter \$context with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Logger.php
+
+		-
+			message: '#^Method App\\Logger\:\:info\(\) has parameter \$context with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Logger.php
+
+		-
+			message: '#^Method App\\Logger\:\:warning\(\) has parameter \$context with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Logger.php
+
+		-
+			message: '#^Method App\\Logger\:\:write\(\) has parameter \$context with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Logger.php
+
+		-
+			message: '#^Call to an undefined method App\\Controller\\ExecuteController\|App\\Controller\\HistoryController\|App\\Controller\\LoginController\|App\\Controller\\MappingController\|App\\Controller\\ProducersController\|App\\Controller\\SeasonsController\|App\\Controller\\UploadController\:\:detail\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Router.php
+
+		-
+			message: '#^Call to an undefined method App\\Controller\\ExecuteController\|App\\Controller\\HistoryController\|App\\Controller\\LoginController\|App\\Controller\\MappingController\|App\\Controller\\ProducersController\|App\\Controller\\SeasonsController\|App\\Controller\\UploadController\:\:execute\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Router.php
+
+		-
+			message: '#^Call to an undefined method App\\Controller\\ExecuteController\|App\\Controller\\HistoryController\|App\\Controller\\LoginController\|App\\Controller\\MappingController\|App\\Controller\\ProducersController\|App\\Controller\\SeasonsController\|App\\Controller\\UploadController\:\:handle\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Router.php
+
+		-
+			message: '#^Call to an undefined method App\\Controller\\ExecuteController\|App\\Controller\\HistoryController\|App\\Controller\\LoginController\|App\\Controller\\MappingController\|App\\Controller\\ProducersController\|App\\Controller\\SeasonsController\|App\\Controller\\UploadController\:\:logout\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Router.php
+
+		-
+			message: '#^Call to an undefined method App\\Controller\\ExecuteController\|App\\Controller\\HistoryController\|App\\Controller\\LoginController\|App\\Controller\\MappingController\|App\\Controller\\ProducersController\|App\\Controller\\SeasonsController\|App\\Controller\\UploadController\:\:reset\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Router.php
+
+		-
+			message: '#^Call to an undefined method App\\Controller\\ExecuteController\|App\\Controller\\HistoryController\|App\\Controller\\LoginController\|App\\Controller\\MappingController\|App\\Controller\\ProducersController\|App\\Controller\\SeasonsController\|App\\Controller\\UploadController\:\:save\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Router.php
+
+		-
+			message: '#^Call to an undefined method App\\Controller\\ExecuteController\|App\\Controller\\HistoryController\|App\\Controller\\LoginController\|App\\Controller\\MappingController\|App\\Controller\\ProducersController\|App\\Controller\\SeasonsController\|App\\Controller\\UploadController\:\:showResult\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Router.php
+
+		-
+			message: '#^Parameter \#1 \$path of function dirname expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Router.php
+
+		-
+			message: '#^Parameter \#1 \$string of function substr expects string, string\|false\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Router.php
+
+		-
+			message: '#^Parameter \#1 \$url of function parse_url expects string, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Router.php
+
+		-
+			message: '#^Part \$method \(mixed\) of encapsed string cannot be cast to string\.$#'
+			identifier: encapsedStringPart.nonString
+			count: 1
+			path: src/Router.php
+
+		-
+			message: '#^Possibly invalid array key type mixed\.$#'
+			identifier: offsetAccess.invalidOffset
+			count: 1
+			path: src/Router.php
+
+		-
+			message: '#^Possibly invalid array key type string\|false\|null\.$#'
+			identifier: offsetAccess.invalidOffset
+			count: 1
+			path: src/Router.php

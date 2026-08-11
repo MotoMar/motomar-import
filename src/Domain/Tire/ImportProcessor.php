@@ -310,6 +310,11 @@ final class ImportProcessor
             $shortcuts      = Bootstrap::config()['vehicle_type_shortcuts'];
             $vehicleTypeId  = $shortcuts[$row->vehicleTypeShortcut] ?? 0;
             $this->repo->createTireParameters($tireId, $row->extra, $vehicleTypeId);
+
+            // Has to run before the name is regenerated below — the name is
+            // assembled from the classified parameters, so a stale
+            // classification produces a stale name.
+            $this->repo->refreshClassifiedParameters($tireId, $row->extra);
         }
 
         if ($this->options['update_structure']) {
@@ -405,15 +410,19 @@ final class ImportProcessor
         }
 
         // Generate proper product name using NameGenerator (like old system)
-        $this->updateProductNameUsingGenerator($productId);
+        $this->updateProductNameUsingGenerator($productId, isNewProduct: true);
 
         ComarchQueue::addProduct($productId);
     }
 
     /**
      * Update product name using NameGenerator (same as old system)
+     *
+     * @param bool $isNewProduct Whether the legacy `products.slug` may be
+     *                           written too — only true for a product created
+     *                           moments ago, which has no indexed URL to lose.
      */
-    private function updateProductNameUsingGenerator(int $productId): void
+    private function updateProductNameUsingGenerator(int $productId, bool $isNewProduct = false): void
     {
         try {
             $pdo = Bootstrap::pdo();
@@ -443,7 +452,8 @@ final class ImportProcessor
             $this->repo->updateProductNameAndSlug(
                 $productId,
                 $nameAndSlug['name'],
-                $nameAndSlug['slug']
+                $nameAndSlug['slug'],
+                $isNewProduct
             );
 
         } catch (\Throwable $e) {
@@ -490,6 +500,7 @@ final class ImportProcessor
             'ex_approval'      => '',
             'ex_other'         => '',
             'all_markers'      => '',
+            'other'            => $inne,
         ];
 
         $tokens = array_values(array_filter(array_map('trim', explode(';', $inne))));

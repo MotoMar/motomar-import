@@ -1,0 +1,19 @@
+includes:
+    # 240 pre-existing errors, almost all of them untyped arrays and casts of
+    # `mixed` coming back from Medoo. Debt to burn down, not a permission slip —
+    # anything written from now on has to pass level 9 without being added here.
+    - phpstan-baseline.neon
+
+parameters:
+    level: 9
+    paths:
+        - src
+        - tests
+    excludePaths:
+        analyse:
+            # Throwaway scripts kept in the webroot for poking at a broken
+            # import. Not part of the application and never will be.
+            - public/debug.php
+            - public/debug-session.php
+            - public/check-syntax.php
+            - public/force-reset.php
