@@ -2,6 +2,7 @@
     "name": "motomar/tire-import",
     "description": "Tire price list import — 3-step process: upload, model mapping, season assignment",
     "type": "project",
+    "license": "proprietary",
     "require": {
         "php": "^8.5",
         "catfan/medoo": "^2.5"
