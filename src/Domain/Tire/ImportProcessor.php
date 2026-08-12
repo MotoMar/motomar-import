@@ -318,6 +318,9 @@ final class ImportProcessor
 
         if ($this->options['update_labels']) {
             $labels = $this->buildLabelUpdate($row);
+            if ($row->eprelId !== '') {
+                $labels['eprel_id'] = (int) $row->eprelId;
+            }
             $this->repo->updateTireLabels($tireId, $labels);
             $this->updateCompoundLabel($tireId, $row);
         }
