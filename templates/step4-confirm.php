@@ -103,14 +103,14 @@ ob_start();
                             <input type="checkbox" name="update_labels" value="1" class="checkbox checkbox-primary" checked>
                             <span class="label-text">
                                 <span class="font-medium">Etykieta EU</span>
-                                <span class="block text-xs text-base-content/60">Opór toczenia, przyczepność, hałas, fale</span>
+                                <span class="block text-xs text-base-content/60">Opór toczenia, przyczepność, hałas, fale, EPREL</span>
                             </span>
                         </label>
                         <label class="label cursor-pointer justify-start gap-3">
                             <input type="checkbox" name="update_inne" value="1" class="checkbox checkbox-primary" checked>
                             <span class="label-text">
                                 <span class="font-medium">Oznaczenia (inne)</span>
-                                <span class="block text-xs text-base-content/60">Run-flat, wzmocnienie, homologacje, EPREL</span>
+                                <span class="block text-xs text-base-content/60">Run-flat, wzmocnienie, homologacje</span>
                             </span>
                         </label>
                         <label class="label cursor-pointer justify-start gap-3">
