@@ -31,12 +31,14 @@ final class ImportProcessor
         'update_inne'      => true,
         'update_structure' => false,
         'update_ref'       => false,  // Option to update REF2 from supplier
+        'update_tread'     => false,
     ];
 
     /**
      * @var array{
      *     created: int,
      *     updated: int,
+     *     reassigned: int,
      *     skipped: int,
      *     errors: list<string>,
      *     errors_capped: bool,
@@ -47,6 +49,7 @@ final class ImportProcessor
     private array $stats = [
         'created'        => 0,
         'updated'        => 0,
+        'reassigned'     => 0,
         'skipped'        => 0,
         'errors'         => [],
         'errors_capped'  => false,
@@ -279,7 +282,7 @@ final class ImportProcessor
         }
 
         if ($existing !== null) {
-            $this->update(RowField::integer($existing, 'id'), $row, $producer);
+            $this->update(RowField::integer($existing, 'id'), $row, $producer, $treadId, $seasonId, $existing);
             ++$this->stats['updated'];
             ++$this->perProducer[$pName]['updated'];
             return;
@@ -294,7 +297,7 @@ final class ImportProcessor
             if (str_contains($e->getMessage(), '1062')) {
                 $fallback = $this->repo->tireByRefAndProducer($row->ref1, RowField::integer($producer, 'id'));
                 if ($fallback !== null) {
-                    $this->update(RowField::integer($fallback, 'id'), $row, $producer);
+                    $this->update(RowField::integer($fallback, 'id'), $row, $producer, $treadId, $seasonId, $fallback);
                     ++$this->stats['updated'];
                     ++$this->perProducer[$pName]['updated'];
                     return;
@@ -304,9 +307,20 @@ final class ImportProcessor
         }
     }
 
-    /** @param array<string, mixed> $producer */
-    private function update(int $tireId, TireRow $row, array $producer): void
+    /**
+     * @param array<string, mixed> $producer
+     * @param array<string, mixed> $existing
+     */
+    private function update(int $tireId, TireRow $row, array $producer, int $treadId, int $seasonId, array $existing): void
     {
+        if ($this->options['update_tread'] && $treadId > 0) {
+            $currentTreadId = RowField::integer($existing, 'id_tires_tread');
+            if ($currentTreadId !== $treadId) {
+                $this->repo->updateTireTread($tireId, $treadId, $seasonId);
+                ++$this->stats['reassigned'];
+            }
+        }
+
         if ($this->options['update_price'] && $row->hasValidPrice()) {
             $this->repo->updateProductPrice($tireId, $row->price);
             $pid = RowField::integer($producer, 'id');

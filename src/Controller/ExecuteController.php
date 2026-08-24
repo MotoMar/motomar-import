@@ -83,6 +83,7 @@ final class ExecuteController
             'update_inne'      => !empty($_POST['update_inne']),
             'update_structure' => !empty($_POST['update_structure']),
             'update_ref'       => !empty($_POST['update_ref']),
+            'update_tread'     => !empty($_POST['update_tread']),
         ];
 
         Bootstrap::logger()->info('Import started', ['uuid' => $uuid, 'options' => $options]);

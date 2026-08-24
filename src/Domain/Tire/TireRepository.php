@@ -207,12 +207,25 @@ final class TireRepository
     /** @return array<string, mixed>|null */
     public function tireByRefAndProducer(string $ref, int $producerId): ?array
     {
-        $row = $this->db->get('tires', ['id'], [
+        $row = $this->db->get('tires', ['id', 'id_tires_tread'], [
             'ref'               => $ref,
             'id_product_producer' => $producerId,
         ]);
 
         return is_array($row) ? $row : null;
+    }
+
+    public function updateTireTread(int $tireId, int $treadId, int $seasonId): void
+    {
+        $tread = $this->treadById($treadId);
+        $treadName = $tread !== null ? RowField::text($tread, 'tread') : '';
+
+        $this->db->update('tires', [
+            'id_tires_tread'  => $treadId,
+            'id_tires_season' => $seasonId,
+            'tire_model'      => $treadName,
+            'tire_model_slug' => self::slug($treadName),
+        ], ['id' => $tireId]);
     }
 
     // ------------------------------------------------------------------ product updates

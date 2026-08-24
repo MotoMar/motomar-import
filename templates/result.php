@@ -22,6 +22,13 @@ ob_start();
                 <div class="stat-value text-primary"><?= (int) ($stats['updated'] ?? 0) ?></div>
                 <div class="stat-desc">cena / etykiety</div>
             </div>
+            <?php if (!empty($stats['reassigned'])): ?>
+            <div class="stat">
+                <div class="stat-title">Przepięte</div>
+                <div class="stat-value text-accent"><?= (int) $stats['reassigned'] ?></div>
+                <div class="stat-desc">zmieniony bieżnik</div>
+            </div>
+            <?php endif; ?>
             <div class="stat">
                 <div class="stat-title">Pominięte</div>
                 <div class="stat-value text-neutral"><?= (int) ($stats['skipped'] ?? 0) ?></div>

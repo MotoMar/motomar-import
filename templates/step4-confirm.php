@@ -134,6 +134,13 @@ ob_start();
                                 <span class="block text-xs text-base-content/60">Aktualizuje REF/REF2 na podstawie EAN</span>
                             </span>
                         </label>
+                        <label class="label cursor-pointer justify-start gap-3">
+                            <input type="checkbox" name="update_tread" value="1" class="checkbox">
+                            <span class="label-text">
+                                <span class="font-medium">Bieżnik (model)</span>
+                                <span class="block text-xs text-base-content/60">Przepina istniejące opony do modelu wybranego w mapowaniu</span>
+                            </span>
+                        </label>
                     </div>
                 </div>
             </div>
