@@ -109,6 +109,7 @@ w motomar-php.
 
 ## Gdzie są decyzje
 
-Otwarte pytania i pomiary: strona **motomar-import** w Anytype. Zanim
-zaproponujesz zmianę w transformacji `other`/`all_markers` albo w słowniku,
+Otwarte pytania i pomiary: projekt **motomar-import** w Linear (zespół `AKN`).
+Zanim zaproponujesz zmianę w transformacji `other`/`all_markers` albo w słowniku,
 sprawdź, czy nie jest tam już opisana jako niejasność czekająca na decyzję.
+Notatki sprzed migracji (2026-08-24) zostały na stronie **motomar-import** w Anytype.
