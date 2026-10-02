@@ -14,5 +14,9 @@ claude/
 # jak w motomar-allegro-php. Wersja i suma kontrolna w CLAUDE.md.
 composer.phar
 
+# Pobrane cenniki dostawców i ich przeróbki — cudze dane handlowe, nie wchodzą do repo.
+/tmp/
+/cenniki/
+
 # composer.lock is committed on purpose — this is an application, not a library,
 # and everyone running the import should get the same dependency versions.
