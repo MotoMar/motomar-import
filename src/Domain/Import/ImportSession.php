@@ -12,7 +12,7 @@ final class ImportSession
     public function __construct(private readonly string $storageDir) {}
 
     /** Allowed data keys to prevent path traversal via key parameter. */
-    private const ALLOWED_KEYS = ['models', 'mapping', 'result'];
+    private const ALLOWED_KEYS = ['models', 'mapping', 'tread_renames', 'result'];
 
     public function start(): string
     {
