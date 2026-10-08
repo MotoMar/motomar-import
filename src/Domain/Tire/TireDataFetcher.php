@@ -62,6 +62,7 @@ class TireDataFetcher
         t.all_markers,
         p.name AS current_name,
         p.better_slug AS current_slug,
+        t.tire_model AS current_model,
         tcp.parameters AS classified_parameters_json
     ';
 
@@ -114,6 +115,7 @@ class TireDataFetcher
      * - all_markers (string)                 — all markers (comma+space separated)
      * - current_name (string)                — current products.name
      * - current_slug (string)                — current products.better_slug
+     * - current_model (string)               — tires.tire_model, the denormalised tread name
      * - classified_parameters_json (?string) — JSON from tires_classified_parameters, or NULL
      *
      * @param null|int $vehicleTypeId Filter by vehicle type (1-10). Null = all.
@@ -160,6 +162,49 @@ class TireDataFetcher
             }
         }
 
+        $stmt->execute();
+
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public function countSelection(TireSelection $selection): int
+    {
+        [$where, $params] = $selection->where();
+
+        $stmt = $this->pdo->prepare('SELECT COUNT(*)'.self::BASE_FROM.' WHERE '.$where);
+
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value, \PDO::PARAM_INT);
+        }
+
+        $stmt->execute();
+
+        return (int) $stmt->fetchColumn();
+    }
+
+    /**
+     * One page of the selected tires, by id, starting after `$afterId`.
+     *
+     * Keyset rather than OFFSET: the caller writes as it goes, and an offset
+     * over a set that changes underneath it skips or repeats rows.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function fetchSelection(TireSelection $selection, int $afterId, int $limit): array
+    {
+        [$where, $params] = $selection->where();
+
+        $stmt = $this->pdo->prepare(
+            'SELECT '.self::BASE_SELECT.self::BASE_FROM
+            .' WHERE '.$where.' AND t.id > :after ORDER BY t.id LIMIT :limit'
+        );
+
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value, \PDO::PARAM_INT);
+        }
+
+        $stmt->bindValue(':after', $afterId, \PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);

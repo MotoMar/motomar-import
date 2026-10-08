@@ -61,13 +61,13 @@ final class ImportProcessor
     /** @var array<string, array{created: int, updated: int, skipped: int, errors: int}> producer_name => counts */
     private array $perProducer = [];
 
-    private NameGenerator $nameGenerator;
+    private ProductNameRegenerator $nameRegenerator;
 
     public function __construct(
         private readonly TireRepository $repo,
         private readonly Logger $logger,
     ) {
-        $this->nameGenerator = new NameGenerator(new SuffixExtractor());
+        $this->nameRegenerator = new ProductNameRegenerator(new NameGenerator(new SuffixExtractor()));
     }
 
     /**
@@ -460,37 +460,14 @@ final class ImportProcessor
     private function updateProductNameUsingGenerator(int $productId, bool $isNewProduct = false): void
     {
         try {
-            $pdo = Bootstrap::pdo();
-            $tireDataFetcher = new TireDataFetcher($pdo);
-
-            // Fetch tire data with classified parameters
-            $tireRow = $tireDataFetcher->fetchTireById($productId);
+            $tireRow = (new TireDataFetcher(Bootstrap::pdo()))->fetchTireById($productId);
 
             if ($tireRow === null) {
                 $this->logger->warning("Cannot generate name: tire {$productId} not found");
                 return;
             }
 
-            // Decode classified parameters from JSON
-            $classifiedParams = TireDataFetcher::decodeClassifiedParameters($tireRow);
-
-            // Generate name and slug using NameGenerator
-            $nameAndSlug = $this->nameGenerator->generateWithSlug($tireRow, $classifiedParams);
-
-            // Archive old name
-            $oldName = RowField::text($tireRow, 'current_name');
-            if ($oldName !== '' && $oldName !== $nameAndSlug['name']) {
-                $this->repo->archiveOldName($productId, $oldName);
-            }
-
-            // Update product name and slug
-            $this->repo->updateProductNameAndSlug(
-                $productId,
-                $nameAndSlug['name'],
-                $nameAndSlug['slug'],
-                $isNewProduct
-            );
-
+            $this->repo->applyNameChange($this->nameRegenerator->change($tireRow), $isNewProduct);
         } catch (\Throwable $e) {
             $this->logger->warning("Name generation failed for tire {$productId}: " . $e->getMessage());
         }

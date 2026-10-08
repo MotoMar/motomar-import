@@ -435,6 +435,40 @@ final class TireRepository
         $this->db->update('products', $fields, ['id' => $productId]);
     }
 
+    /**
+     * Writes a regenerated name, and whatever else the change carries: the
+     * stale tread copy on `tires` and a recomputed classification. The old
+     * name goes to `old_name` first, as it always has.
+     */
+    public function applyNameChange(NameChange $change, bool $isNewProduct = false): void
+    {
+        if (null !== $change->reclassified) {
+            TireParametersBuilder::upsert(Bootstrap::pdo(), $change->tireId, $change->reclassified);
+        }
+
+        if ($change->modelChanged()) {
+            $this->updateTireModel($change->tireId, $change->newModel);
+        }
+
+        if ('' !== $change->oldName && $change->oldName !== $change->newName) {
+            $this->archiveOldName($change->tireId, $change->oldName);
+        }
+
+        $this->updateProductNameAndSlug($change->tireId, $change->newName, $change->newSlug, $isNewProduct);
+    }
+
+    /**
+     * `tires.tire_model` copies the tread name and nothing keeps it in step;
+     * a renamed or merged tread leaves it behind.
+     */
+    public function updateTireModel(int $tireId, string $model): void
+    {
+        $this->db->update('tires', [
+            'tire_model'      => $model,
+            'tire_model_slug' => self::slug($model),
+        ], ['id' => $tireId]);
+    }
+
     public function archiveOldName(int $productId, string $oldName): void
     {
         $this->db->update('products', [

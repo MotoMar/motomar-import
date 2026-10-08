@@ -58,6 +58,18 @@ i grupując po kolumnach `value`/`slug` — zapytanie w
 Kolejność operacji w imporcie ma znaczenie: **klasyfikację odświeżamy przed
 wygenerowaniem nazwy**. Odwrotnie daje starą nazwę bez żadnego sygnału.
 
+Poza importem nazwy przelicza `bin/regenerateNames.php` (`--tire`, `--tread`,
+`--producer`, `--all`; `--reclassify` najpierw przelicza klasyfikację w pamięci,
+więc dry-run pokazuje to, co zapis). Bez `--apply` niczego nie zapisuje.
+Zapis zmienia `better_slug`, a sklep szuka produktu dokładnie po `slug` albo
+`better_slug` — stary adres przestaje działać. Kopia starych wartości trafia do
+`storage/logs/regenerate-names-*.jsonl`.
+
+Nazwa jest tak dobra jak wymiary w tabelach słownikowych: opona 25146 ma
+w `tires_width` cały rozmiar `4.10H19`, a w `tires_construction` `- 19`, więc
+generator składa „4.10H19 - 19". Na `motomar_dev` (2026-10-08) `--all` dawał
+dwie takie nazwy (25146, 93312) — przed `--all --apply` popraw dane, nie generator.
+
 ## Niezmienniki pilnowane testami
 
 `VehicleTypeClassificationOrder` musi zaczynać się listą z
