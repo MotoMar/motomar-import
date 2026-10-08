@@ -8,6 +8,8 @@ use App\Bootstrap;
 use App\Domain\Comarch\ComarchQueue;
 use App\Domain\Csv\CsvParser;
 use App\Domain\Csv\TireRow;
+use App\Domain\Import\ImportAborted;
+use App\Domain\Import\ImportTransaction;
 use App\Logger;
 
 final class ImportProcessor
@@ -187,12 +189,13 @@ final class ImportProcessor
     }
 
     /**
-     * @param  array<string, mixed> $mapping  mappingKey → resolved tread
-     * @param  array<string, bool> $options
+     * @param  array<string, mixed> $mapping     mappingKey → resolved tread
+     * @param  ImportTransaction    $transaction transakcja wołającego, otwarta; import pisze tylko pod nią
+     * @param  array<string, bool>  $options
      *
      * @return array<string, mixed>
      */
-    public function run(string $csvPath, array $mapping, array $options = []): array
+    public function run(string $csvPath, array $mapping, ImportTransaction $transaction, array $options = []): array
     {
         $this->options = array_merge($this->options, $options);
         $this->producerCache = []; // Reset cache
@@ -201,7 +204,9 @@ final class ImportProcessor
 
         foreach ($rows as $row) {
             try {
-                $this->processRow($row, $mapping);
+                $transaction->savepoint('import_row', fn () => $this->processRow($row, $mapping, $transaction));
+            } catch (ImportAborted $e) {
+                throw $e;
             } catch (\Throwable $e) {
                 $msg = sprintf('[EAN %s | %s %s] %s', $row->ean, $row->producerName, $row->modelName, $e->getMessage());
                 $this->logger->warning('Row import failed', ['error' => $msg]);
@@ -233,7 +238,7 @@ final class ImportProcessor
     private array $producerCache = [];
 
     /** @param array<string, mixed> $mapping Klucz mapowania → rozstrzygnięty bieżnik */
-    private function processRow(TireRow $row, array $mapping): void
+    private function processRow(TireRow $row, array $mapping, ImportTransaction $transaction): void
     {
         // Use cached producer lookup (avoid repeated DB queries)
         if (!isset($this->producerCache[$row->producerName])) {
@@ -289,7 +294,10 @@ final class ImportProcessor
         }
 
         try {
-            $this->create($row, $producer, $treadId, $seasonId);
+            // Własny savepoint, bo przy kolizji numkatu `products` jest już
+            // wstawione — bez cofnięcia zostałby produkt bez opony obok tej,
+            // którą zaraz zaktualizujemy.
+            $transaction->savepoint('import_create', fn () => $this->create($row, $producer, $treadId, $seasonId));
             ++$this->stats['created'];
             ++$this->perProducer[$pName]['created'];
         } catch (\PDOException $e) {
@@ -469,6 +477,7 @@ final class ImportProcessor
 
             $this->repo->applyNameChange($this->nameRegenerator->change($tireRow), $isNewProduct);
         } catch (\Throwable $e) {
+            ImportTransaction::rethrowIfLost($e);
             $this->logger->warning("Name generation failed for tire {$productId}: " . $e->getMessage());
         }
     }

@@ -80,6 +80,14 @@ Przebudowa klasyfikacji **nie kasuje rodzajów, których nie umie wyliczyć** �
 `preserveUnclassifiableKinds()`. Rodzaj obecny w słowniku, a nieobecny
 w kolejności żadnego typu pojazdu, o mało nie skasował filtra sklepu.
 
+**Import zapisuje cały plik albo nic** (`ImportTransaction`). Każdy wiersz idzie
+pod savepointem, a błąd kończący transakcję (zakleszczenie 1213, zerwane
+połączenie) przerywa cały import jako `ImportAborted`. Kod na ścieżce importu,
+który łapie wyjątek i jedzie dalej, **musi** najpierw wołać
+`ImportTransaction::rethrowIfLost($e)` — połknięte zakleszczenie zostawiło
+2026-10-08 84 produkty bez opon (AKN-689). Po zakleszczeniu `inTransaction()`
+wciąż zwraca true, więc rozpoznaje się je po kodzie błędu, nie po nim.
+
 ## Baza lokalnie
 
 ```

@@ -8,8 +8,10 @@ use App\Domain\Tire\RowField;
 use App\Request;
 use App\Bootstrap;
 use App\Csrf;
+use App\Domain\Import\ImportAborted;
 use App\Domain\Import\ImportHistoryRepository;
 use App\Domain\Import\ImportSession;
+use App\Domain\Import\ImportTransaction;
 use App\Domain\Tire\ImportProcessor;
 use App\Domain\Tire\TireCodesUpdater;
 use App\Domain\Tire\TireRepository;
@@ -88,28 +90,28 @@ final class ExecuteController
 
         Bootstrap::logger()->info('Import started', ['uuid' => $uuid, 'options' => $options]);
 
-        $pdo = Bootstrap::pdo();
+        $pdo         = Bootstrap::pdo();
+        $transaction = new ImportTransaction($pdo);
 
         try {
-            $pdo->beginTransaction();
+            $stats = $transaction->run(function () use ($transaction, $pdo, $mapping, $csvPath, $options): array {
+                // 1. Create new tread records (models marked as new with assigned seasons)
+                $resolvedMapping = $this->createNewTreads($mapping);
 
-            // 1. Create new tread records (models marked as new with assigned seasons)
-            $resolvedMapping = $this->createNewTreads($mapping);
+                // 2. Run the actual import
+                $processor = new ImportProcessor($this->repo, Bootstrap::logger());
+                $stats     = $processor->run($csvPath, $resolvedMapping, $transaction, $options);
 
-            // 2. Run the actual import
-            $processor = new ImportProcessor($this->repo, Bootstrap::logger());
-            $stats     = $processor->run($csvPath, $resolvedMapping, $options);
+                // 3. Rebuild legacy code lookup table, like the old import task did.
+                $stats['tires_codes'] = (new TireCodesUpdater($pdo))->rebuild();
 
-            // 3. Rebuild legacy code lookup table, like the old import task did.
-            $stats['tires_codes'] = (new TireCodesUpdater($pdo))->rebuild();
-
-            $pdo->commit();
+                return $stats;
+            });
         } catch (\Throwable $e) {
-            if ($pdo->inTransaction()) {
-                $pdo->rollBack();
-            }
             Bootstrap::logger()->error('Import failed', ['uuid' => $uuid, 'error' => $e->getMessage()]);
-            $_SESSION['_flash_error'] = 'Import zakończony błędem: ' . $e->getMessage();
+            $_SESSION['_flash_error'] = $e instanceof ImportAborted
+                ? 'Import przerwany i wycofany — ' . rtrim($e->getMessage(), '.') . '. Uruchom go jeszcze raz.'
+                : 'Import zakończony błędem: ' . $e->getMessage();
             $this->redirect('execute');
             return;
         }

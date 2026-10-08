@@ -6,6 +6,7 @@ namespace App\Domain\Tire;
 
 use App\Bootstrap;
 use App\Domain\Csv\TireRow;
+use App\Domain\Import\ImportTransaction;
 use Medoo\Medoo;
 
 final class TireRepository
@@ -657,6 +658,7 @@ final class TireRepository
             
             return $builder->buildParameters($tireRow, $matcher);
         } catch (\Throwable $e) {
+            ImportTransaction::rethrowIfLost($e);
             // Log error but don't fail import
             error_log("Tire parameter classification failed for tire {$tireId}: " . $e->getMessage());
             return [];
