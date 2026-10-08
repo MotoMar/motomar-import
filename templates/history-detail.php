@@ -66,6 +66,7 @@ ob_start();
             <table class="table table-compact w-full">
                 <tbody>
                     <?php foreach ($import['options'] as $key => $value): ?>
+                    <?php if (is_array($value)) { continue; } ?>
                     <tr>
                         <td class="font-mono"><strong><?= htmlspecialchars($key) ?></strong></td>
                         <td><?= $value ? '<span class="badge badge-success">TAK</span>' : '<span class="badge badge-neutral">NIE</span>' ?></td>
@@ -74,6 +75,24 @@ ob_start();
                 </tbody>
             </table>
         </div>
+
+        <?php if (!empty($import['options']['tread_renames']) && is_array($import['options']['tread_renames'])): ?>
+        <div class="divider">Zmienione nazwy bieżników</div>
+        <div class="overflow-x-auto mb-6">
+            <table class="table table-compact w-full">
+                <thead><tr><th>ID</th><th>Było</th><th>Jest</th></tr></thead>
+                <tbody>
+                    <?php foreach ($import['options']['tread_renames'] as $r): ?>
+                    <tr>
+                        <td class="font-mono"><?= (int) ($r['tread_id'] ?? 0) ?></td>
+                        <td><?= htmlspecialchars((string) ($r['old'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
+                        <td><?= htmlspecialchars((string) ($r['new'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+        <?php endif; ?>
 
         <!-- Errors (if any) -->
         <?php if (!empty($import['error_messages'])): ?>

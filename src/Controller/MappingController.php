@@ -10,6 +10,8 @@ use App\Bootstrap;
 use App\Csrf;
 use App\Domain\Import\ImportSession;
 use App\Domain\Tire\TireRepository;
+use App\Domain\Tire\TreadRename;
+use App\Domain\Tire\TreadRenamePlan;
 
 final class MappingController
 {
@@ -114,6 +116,10 @@ final class MappingController
         $actionPost = Request::postArray('action');
         $existingTreadPost = Request::postArray('existing_tread');
         $newProducerNamePost = Request::postArray('new_producer_name');
+        $overridePost = Request::postArray('override');
+        $renamePost = Request::postArray('rename_tread');
+        /** @var list<array{model: string, tread_id: int, producer_id: int, current: string, new: string}> $renameRequests */
+        $renameRequests = [];
 
         foreach ($models as $key => $model) {
             if (!is_array($model)) {
@@ -159,6 +165,16 @@ final class MappingController
                     'season_id'     => RowField::integer($tread, 'season_id'),
                     'is_new'        => false,
                 ];
+
+                if (RowField::flag($overridePost, (string) $key)) {
+                    $renameRequests[] = [
+                        'model'       => $modelName,
+                        'tread_id'    => $treadId,
+                        'producer_id' => RowField::integer($tread, 'producer_id'),
+                        'current'     => RowField::text($tread, 'tread'),
+                        'new'         => RowField::text($renamePost, (string) $key),
+                    ];
+                }
             }
 
             if ($action === 'new') {
@@ -187,7 +203,16 @@ final class MappingController
             }
         }
 
+        $plan = $this->renamePlan($renameRequests, $mapping);
+
+        if ($plan->errors !== []) {
+            $_SESSION['_flash_error'] = 'Nadpisanie nazwy bieżnika odrzucone: ' . implode(' ', $plan->errors);
+            $this->redirect('mapping');
+            return;
+        }
+
         $this->session->write($uuid, 'mapping', $mapping);
+        $this->session->write($uuid, 'tread_renames', array_map(static fn (TreadRename $r): array => $r->toArray(), $plan->renames));
         $this->session->setStep($hasNew ? 3 : 4);
 
         Bootstrap::logger()->info('Mapping saved', [
@@ -195,9 +220,46 @@ final class MappingController
             'total'   => count($mapping),
             'new'     => count(array_filter($mapping, fn($m) => $m['is_new'])),
             'hasNew'  => $hasNew,
+            'tread_renames' => array_map(static fn (TreadRename $r): array => $r->toArray(), $plan->renames),
         ]);
 
         $this->redirect($hasNew ? 'seasons' : 'execute');
+    }
+
+    /**
+     * @param list<array{model: string, tread_id: int, producer_id: int, current: string, new: string}> $requests
+     * @param array<array-key, array<string, mixed>>                                                    $mapping
+     */
+    private function renamePlan(array $requests, array $mapping): TreadRenamePlan
+    {
+        if ($requests === []) {
+            return TreadRenamePlan::build([], []);
+        }
+
+        $treadsByProducer = [];
+
+        foreach (array_unique(array_column($requests, 'producer_id')) as $producerId) {
+            $treadsByProducer[$producerId] = array_map(
+                static fn (array $t): array => ['id' => RowField::integer($t, 'id'), 'tread' => RowField::text($t, 'tread')],
+                array_values($this->repo->treadsByProducer($producerId)),
+            );
+        }
+
+        $createdByProducer = [];
+
+        foreach ($mapping as $entry) {
+            if (!RowField::flag($entry, 'is_new')) {
+                continue;
+            }
+
+            $producer = $this->repo->producerByName(RowField::text($entry, 'producer_name'));
+
+            if ($producer !== null) {
+                $createdByProducer[RowField::integer($producer, 'id')][] = RowField::text($entry, 'model_name');
+            }
+        }
+
+        return TreadRenamePlan::build($requests, $treadsByProducer, $createdByProducer);
     }
 
     private function redirect(string $path): void

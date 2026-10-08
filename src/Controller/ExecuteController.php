@@ -13,8 +13,15 @@ use App\Domain\Import\ImportHistoryRepository;
 use App\Domain\Import\ImportSession;
 use App\Domain\Import\ImportTransaction;
 use App\Domain\Tire\ImportProcessor;
+use App\Domain\Tire\NameGenerator;
+use App\Domain\Tire\ProductNameRegenerator;
+use App\Domain\Tire\SuffixExtractor;
 use App\Domain\Tire\TireCodesUpdater;
+use App\Domain\Tire\TireDataFetcher;
 use App\Domain\Tire\TireRepository;
+use App\Domain\Tire\TireSelection;
+use App\Domain\Tire\TreadRename;
+use App\Domain\Tire\TreadRenamer;
 
 final class ExecuteController
 {
@@ -44,6 +51,14 @@ final class ExecuteController
             static fn (mixed $m): bool => is_array($m) && RowField::flag(RowField::normalise($m), 'is_new'),
         );
         $seasonMap  = array_column($this->repo->allSeasons(), 'season', 'id');
+
+        $fetcher      = new TireDataFetcher(Bootstrap::pdo());
+        $treadRenames = array_map(
+            static fn (TreadRename $r): array => $r->toArray() + [
+                'tires' => $fetcher->countSelection(TireSelection::treads([$r->treadId])),
+            ],
+            $this->treadRenames($uuid),
+        );
 
         $csvPath  = $this->session->csvPath($uuid);
         $preview  = null;
@@ -92,15 +107,30 @@ final class ExecuteController
 
         $pdo         = Bootstrap::pdo();
         $transaction = new ImportTransaction($pdo);
+        $renames     = $this->treadRenames($uuid);
 
         try {
-            $stats = $transaction->run(function () use ($transaction, $pdo, $mapping, $csvPath, $options): array {
+            $stats = $transaction->run(function () use ($transaction, $pdo, $mapping, $csvPath, $options, $renames): array {
+                $renamer = new TreadRenamer(
+                    $this->repo,
+                    new TireDataFetcher($pdo),
+                    new ProductNameRegenerator(new NameGenerator(new SuffixExtractor())),
+                    Bootstrap::logger(),
+                );
+
+                // 0. Najpierw nazwy bieżników — wiersze z pliku dostaną już nową nazwę
+                $renamer->rename($renames);
+
                 // 1. Create new tread records (models marked as new with assigned seasons)
                 $resolvedMapping = $this->createNewTreads($mapping);
 
                 // 2. Run the actual import
                 $processor = new ImportProcessor($this->repo, Bootstrap::logger());
                 $stats     = $processor->run($csvPath, $resolvedMapping, $transaction, $options);
+
+                // 2a. Opony przemianowanych bieżników spoza pliku
+                $stats['tread_renames']     = array_map(static fn (TreadRename $r): array => $r->toArray(), $renames);
+                $stats['names_regenerated'] = $renamer->regenerateNames($renames);
 
                 // 3. Rebuild legacy code lookup table, like the old import task did.
                 $stats['tires_codes'] = (new TireCodesUpdater($pdo))->rebuild();
@@ -132,6 +162,10 @@ final class ExecuteController
             Bootstrap::logger()->warning('Failed to record pricings_tires', [
                 'error' => $pricingError->getMessage(),
             ]);
+        }
+
+        if ($renames !== []) {
+            $options['tread_renames'] = array_map(static fn (TreadRename $r): array => $r->toArray(), $renames);
         }
 
         // Record import in history per producer (outside transaction)
@@ -247,6 +281,20 @@ final class ExecuteController
         unset($entry);
 
         return $mapping;
+    }
+
+    /** @return list<TreadRename> */
+    private function treadRenames(string $uuid): array
+    {
+        $renames = [];
+
+        foreach ($this->session->readArray($uuid, 'tread_renames') as $row) {
+            if (is_array($row)) {
+                $renames[] = TreadRename::fromArray(RowField::normalise($row));
+            }
+        }
+
+        return $renames;
     }
 
     private function redirect(string $path): void

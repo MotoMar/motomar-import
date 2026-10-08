@@ -60,6 +60,20 @@ ob_start();
         </div>
         <?php endif; ?>
 
+        <?php if (!empty($stats['tread_renames']) && is_array($stats['tread_renames'])): ?>
+        <div class="alert alert-info mb-6">
+            <span>
+                Zmienione nazwy bieżników:
+                <?php foreach ($stats['tread_renames'] as $r): ?>
+                    <br><span class="font-mono">#<?= (int) ($r['tread_id'] ?? 0) ?></span>
+                    <?= htmlspecialchars((string) ($r['old'] ?? ''), ENT_QUOTES, 'UTF-8') ?> →
+                    <strong><?= htmlspecialchars((string) ($r['new'] ?? ''), ENT_QUOTES, 'UTF-8') ?></strong>
+                <?php endforeach; ?>
+                <br>Przeliczone nazwy produktów spoza pliku: <strong><?= (int) ($stats['names_regenerated'] ?? 0) ?></strong>.
+            </span>
+        </div>
+        <?php endif; ?>
+
         <?php if (empty($stats['errors'])): ?>
         <div class="alert alert-success mb-6">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">

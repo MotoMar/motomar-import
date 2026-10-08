@@ -44,9 +44,27 @@ ob_start();
                             $hasMatch      = !empty($treads) && !empty(array_filter($treads, fn($t) => strtolower((string) ($t['tread'] ?? '')) === $modelNameLc));
                             $defaultAction = $hasMatch ? 'existing' : 'new';
                         ?>
-                        <tr x-data="{ action: '<?= $defaultAction ?>' }">
+                        <tr x-data="{ action: '<?= $defaultAction ?>', override: false }">
                             <td class="font-medium"><?= $encodedProd ?></td>
-                            <td><?= $encodedModel ?></td>
+                            <td>
+                                <span x-show="!(action === 'existing' && override)"><?= $encodedModel ?></span>
+                                <?php if (!empty($treads)): ?>
+                                <input type="text"
+                                       name="rename_tread[<?= $encodedKey ?>]"
+                                       value="<?= $encodedModel ?>"
+                                       class="input input-bordered input-sm w-full max-w-xs"
+                                       aria-label="Nowa nazwa bieżnika wybranego obok"
+                                       x-show="action === 'existing' && override"
+                                       x-bind:disabled="!(action === 'existing' && override)"
+                                       x-bind:required="action === 'existing' && override"
+                                       x-cloak
+                                       disabled>
+                                <span class="text-xs text-base-content/60 block mt-1"
+                                      x-show="action === 'existing' && override" x-cloak>
+                                    nowa nazwa bieżnika wybranego w kolumnie „Istniejący model”
+                                </span>
+                                <?php endif; ?>
+                            </td>
                             <td class="text-center">
                                 <span class="badge badge-ghost"><?= (int) $model['count'] ?></span>
                             </td>
@@ -71,6 +89,18 @@ ob_start();
                                         <span class="label-text text-warning font-medium">Nowy</span>
                                     </label>
                                 </div>
+                                <?php if (!empty($treads)): ?>
+                                <label class="label cursor-pointer justify-start gap-2 py-0"
+                                       x-show="action === 'existing'" x-cloak>
+                                    <input type="checkbox"
+                                           name="override[<?= $encodedKey ?>]"
+                                           value="1"
+                                           class="checkbox checkbox-xs"
+                                           x-model="override"
+                                           x-bind:disabled="action !== 'existing'">
+                                    <span class="label-text text-xs">nadpisz</span>
+                                </label>
+                                <?php endif; ?>
                             </td>
                             <td>
                                 <?php if (!empty($treads)):

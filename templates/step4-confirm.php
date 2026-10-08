@@ -51,6 +51,34 @@ ob_start();
         </div>
         <?php endif; ?>
 
+        <?php if (!empty($treadRenames)): ?>
+        <div class="mb-6">
+            <h3 class="font-semibold text-lg mb-2">Zmiana nazw istniejących bieżników</h3>
+            <div class="overflow-x-auto">
+                <table class="table table-sm table-zebra">
+                    <thead>
+                        <tr><th>ID</th><th>Obecna nazwa</th><th>Nowa nazwa</th><th class="text-right">Opon na bieżniku</th></tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($treadRenames as $r): ?>
+                        <tr>
+                            <td class="font-mono"><?= (int) $r['tread_id'] ?></td>
+                            <td><?= htmlspecialchars($r['old'], ENT_QUOTES, 'UTF-8') ?></td>
+                            <td class="font-medium"><?= htmlspecialchars($r['new'], ENT_QUOTES, 'UTF-8') ?></td>
+                            <td class="text-right"><?= (int) $r['tires'] ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-sm text-base-content/70 mt-2">
+                Wszystkie <strong><?= array_sum(array_column($treadRenames, 'tires')) ?></strong> opon tych bieżników
+                dostanie nową nazwę produktu, a z nią nowy adres w sklepie — także opony spoza tego pliku.
+                Adres strony modelu (slug bieżnika) zostaje bez zmian.
+            </p>
+        </div>
+        <?php endif; ?>
+
         <?php if (!empty($newModels)): ?>
         <div class="mb-6">
             <h3 class="font-semibold text-lg mb-2">Nowe modele do utworzenia</h3>

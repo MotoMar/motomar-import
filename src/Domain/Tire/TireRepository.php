@@ -90,6 +90,25 @@ final class TireRepository
         return is_array($row) ? $row : null;
     }
 
+    /**
+     * Zmienia nazwę bieżnika, pod warunkiem że nadal nazywa się tak, jak
+     * w chwili mapowania — inaczej ktoś go w międzyczasie zmienił i nadpisanie
+     * operatora dotyczyłoby czegoś, czego nie widział.
+     *
+     * `slug` zostaje: OponyLux szuka bieżnika po slugu (`/model/:producer_tread`,
+     * `tires_controller.ex:27`) i nie ma przekierowań, więc nowy slug wyrzuciłby
+     * zaindeksowane adresy modelu na stronę zastępczą.
+     */
+    public function renameTread(int $treadId, string $oldName, string $newName): void
+    {
+        $stmt = Bootstrap::pdo()->prepare('UPDATE tires_treads SET tread = :new WHERE id = :id AND BINARY tread = BINARY :old');
+        $stmt->execute([':new' => $newName, ':id' => $treadId, ':old' => $oldName]);
+
+        if (1 !== $stmt->rowCount()) {
+            throw new \RuntimeException("Bieżnik #{$treadId} nie nazywa się już „{$oldName}” — zmieniony od mapowania. Wróć do kroku 2.");
+        }
+    }
+
     public function createTread(int $producerId, string $name, int $seasonId): int
     {
         $slug = self::slug($name);

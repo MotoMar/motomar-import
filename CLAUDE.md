@@ -88,6 +88,11 @@ który łapie wyjątek i jedzie dalej, **musi** najpierw wołać
 2026-10-08 84 produkty bez opon (AKN-689). Po zakleszczeniu `inTransaction()`
 wciąż zwraca true, więc rozpoznaje się je po kodzie błędu, nie po nim.
 
+**Zmiana nazwy bieżnika nie rusza `tires_treads.slug`.** OponyLux szuka modelu
+po slugu (`/model/:producer_tread`, `motomar-oponylux/.../tires_controller.ex:27`)
+i nie ma przekierowań — nowy slug to martwe zaindeksowane adresy. Zmienia się
+nazwa i nazwy produktów wszystkich opon bieżnika (`TreadRenamer`, AKN-690).
+
 ## Baza lokalnie
 
 ```
