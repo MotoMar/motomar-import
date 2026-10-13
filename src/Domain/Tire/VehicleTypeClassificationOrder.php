@@ -32,6 +32,9 @@ namespace App\Domain\Tire;
  * │     • tire_technology  — added to types 1, 2, 3, 7, 8, 9, 10          │
  * │                          (already present in 4, 5, 6 for suffixes)     │
  * │     • country          — added to ALL types 1–10 (never shown in name)│
+ * │     • load_range       — added to types 1, 2, 3 (never shown in name: │
+ * │                          LRC/LRD/LRE restate the 6/8/10PR already      │
+ * │                          there, and a new suffix is a new better_slug) │
  * └─────────────────────────────────────────────────────────────────────────┘
  *
  * This class is consumed by:
@@ -58,6 +61,7 @@ final class VehicleTypeClassificationOrder
             'tube_type',        // classification-only: not in suffix order for this type
             'tire_technology',  // classification-only: not in suffix order for this type
             'country',          // classification-only: not in suffix order for this type
+            'load_range',       // classification-only: not in suffix order for this type
         ],
         2  => [
             'reinforcement', 'runflat', 'rim_protector', 'homologation', 'seal', 'silent',
@@ -65,6 +69,7 @@ final class VehicleTypeClassificationOrder
             'tube_type',        // classification-only: not in suffix order for this type
             'tire_technology',  // classification-only: not in suffix order for this type
             'country',          // classification-only: not in suffix order for this type
+            'load_range',       // classification-only: not in suffix order for this type
         ],
         3  => [
             'reinforcement', 'runflat', 'rim_protector', 'homologation', 'seal', 'silent',
@@ -72,6 +77,7 @@ final class VehicleTypeClassificationOrder
             'tube_type',        // classification-only: not in suffix order for this type
             'tire_technology',  // classification-only: not in suffix order for this type
             'country',          // classification-only: not in suffix order for this type
+            'load_range',       // classification-only: not in suffix order for this type
         ],
         4  => [
             'tube_type', 'ply_rating', 'season', 'reinforcement', 'tire_technology',
