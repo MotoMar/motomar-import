@@ -28,6 +28,8 @@ function dictionaryCodes(): array
         'tube_type'       => ['TL', 'TL/TT', 'TT', 'TT/TL'],
         'tire_technology' => ['Enliten', 'High Load', 'VF'],
         'studded'         => ['kolcowana'],
+        'ply_rating'      => ['6PR', '8PR', '10PR'],
+        'load_range'      => ['LRC', 'LRD', 'LRE'],
     ];
 }
 

@@ -129,6 +129,15 @@ it('classifies only the kinds the vehicle type allows', function (): void {
     expect($result)->toBe(['tube_type' => ['TL'], 'reinforcement' => ['C']]);
 });
 
+it('classifies a load range next to the ply rating it restates', function (int $vehicleType): void {
+    $result = (new TireParametersBuilder())->buildParameters(
+        tireRow('LRE;10PR', vehicleType: $vehicleType),
+        dictionary(),
+    );
+
+    expect($result)->toBe(['ply_rating' => ['10PR'], 'load_range' => ['LRE']]);
+})->with([1, 2, 3]);
+
 it('encodes an empty classification as an empty JSON object', function (): void {
     expect(TireParametersBuilder::toJson([]))->toBe('{}');
 });

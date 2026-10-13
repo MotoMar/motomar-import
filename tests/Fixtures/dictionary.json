@@ -382,6 +382,11 @@
         "Y300",
         "Y301"
     ],
+    "load_range": [
+        "LRC",
+        "LRD",
+        "LRE"
+    ],
     "lt_designation": [
         "LT"
     ],

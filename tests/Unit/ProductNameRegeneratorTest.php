@@ -73,6 +73,19 @@ describe('ProductNameRegenerator', function (): void {
             ->and($change->newName)->toBe('Barum Bravuris 3HM 235/50 R 19 99V XL FR');
     });
 
+    it('stores a load range without putting it in the name', function (): void {
+        $row = fetchedTire([
+            'other'                      => 'FR;LRE;10PR',
+            'current_name'               => 'Barum Bravuris 3HM 235/50 R 19 99V FR 10PR',
+            'current_slug'               => 'barum-bravuris-3hm-235-50-r-19-99v-fr-10pr-94480',
+            'classified_parameters_json' => '{"rim_protector":["FR"],"ply_rating":["10PR"]}',
+        ]);
+        $change = regenerator(dictionary())->change($row);
+
+        expect($change->reclassified)->toBe(['rim_protector' => ['FR'], 'ply_rating' => ['10PR'], 'load_range' => ['LRE']])
+            ->and($change->nameChanged())->toBeFalse();
+    });
+
     it('does not count a reordered but equal classification as a change', function (): void {
         $matcher = DictionaryMatcher::fromCodes(['rim_protector' => ['FR'], 'tube_type' => ['TL']]);
         $row = fetchedTire(['classified_parameters_json' => '{"tube_type":["TL"],"rim_protector":["FR"]}']);
