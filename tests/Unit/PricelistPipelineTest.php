@@ -89,7 +89,7 @@ function nameHard(string $ref): string
         'producer'         => $row->producerName,
         'tread'            => $row->modelName,
         'tire_size'        => $size['width']
-            . ('' !== $size['profile'] && '0' !== $size['profile'] ? '/' . $size['profile'] : '')
+            . ('' !== $size['profile'] ? '/' . $size['profile'] : '')
             . ' ' . $size['construction'],
         'tire_li'          => $li,
         'tire_si'          => null === $indices ? '' : $indices['si'],
