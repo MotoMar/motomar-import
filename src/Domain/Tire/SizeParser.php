@@ -21,11 +21,32 @@ final class SizeParser
      *  9. Decimal width + letter: 7.50R16, 8.25R16, 9.5R17.5
      * 10. Diagonal (width-diam):  11.2-24, 6.00-16, 10-15.3, 14.9-38
      *
-     * @return array{width: string, profile: string, construction: string, diameter: string}|null
+     * `width` and `profile` are the values for the `tires_width` and
+     * `tires_profile` dictionaries, from which the product name is built.
+     * `column_width` and `column_profile` are what the denormalised
+     * `tires.tire_width` / `tires.tire_profile` hold, and they differ only for
+     * a size without a profile: the columns keep the width without its dot and
+     * the implied 80 of a millimetre width, because motomar-php's Erli export
+     * prints `tire_width/tire_profile` (`205/80R16`).
+     *
+     * @return array{width: string, profile: string, construction: string, diameter: string, column_width: string, column_profile: string}|null
      */
     public static function parseSize(string $size): ?array
     {
-        $size = strtoupper(trim($size));
+        $parsed = self::dimensions(strtoupper(trim($size)));
+
+        if ($parsed === null) {
+            return null;
+        }
+
+        return $parsed + ['column_width' => $parsed['width'], 'column_profile' => $parsed['profile']];
+    }
+
+    /**
+     * @return array{width: string, profile: string, construction: string, diameter: string, column_width?: string, column_profile?: string}|null
+     */
+    private static function dimensions(string $size): ?array
+    {
 
         // 1. Metric with slash + letter construction: 205/55R16, 205/65R17.5, 130/90B16, 195/65R420
         if (preg_match('/^(\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)([A-Z]+)(\d+(?:\.\d+)?)/', $size, $m)) {
@@ -100,20 +121,24 @@ final class SizeParser
         // 8. Integer width + letters + diameter (no profile): 195R14, 195R14C, 18R22.5
         if (preg_match('/^(\d+)([A-Z]+)(\d+(?:\.\d+)?)/', $size, $m)) {
             return [
-                'width'        => $m[1],
-                'profile'      => '0',
-                'construction' => $m[2] . ' ' . $m[3],
-                'diameter'     => $m[3],
+                'width'          => $m[1],
+                'profile'        => '',
+                'construction'   => $m[2] . ' ' . $m[3],
+                'diameter'       => $m[3],
+                'column_width'   => $m[1],
+                'column_profile' => (int) $m[1] >= 100 ? '80' : '',
             ];
         }
 
         // 9. Decimal width + letters + diameter (no profile): 7.50R16, 8.25R16, 9.5R17.5
         if (preg_match('/^(\d+\.\d+)([A-Z]+)(\d+(?:\.\d+)?)/', $size, $m)) {
             return [
-                'width'        => str_replace('.', '', $m[1]),
-                'profile'      => '0',
-                'construction' => $m[2] . ' ' . $m[3],
-                'diameter'     => $m[3],
+                'width'          => $m[1],
+                'profile'        => '',
+                'construction'   => $m[2] . ' ' . $m[3],
+                'diameter'       => $m[3],
+                'column_width'   => str_replace('.', '', $m[1]),
+                'column_profile' => '',
             ];
         }
 
