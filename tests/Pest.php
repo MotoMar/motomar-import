@@ -30,6 +30,7 @@ function dictionaryCodes(): array
         'studded'         => ['kolcowana'],
         'ply_rating'      => ['6PR', '8PR', '10PR'],
         'load_range'      => ['LRC', 'LRD', 'LRE'],
+        'ice_grip'        => ['Ice Grip'],
     ];
 }
 

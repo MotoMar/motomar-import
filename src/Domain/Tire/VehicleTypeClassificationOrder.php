@@ -35,6 +35,8 @@ namespace App\Domain\Tire;
  * │     • load_range       — added to types 1, 2, 3 (never shown in name: │
  * │                          LRC/LRD/LRE restate the 6/8/10PR already      │
  * │                          there, and a new suffix is a new better_slug) │
+ * │     • ice_grip         — added to types 1, 2, 3 (never shown in name: │
+ * │                          the label pictogram, kept for filters only)   │
  * └─────────────────────────────────────────────────────────────────────────┘
  *
  * This class is consumed by:
@@ -62,6 +64,7 @@ final class VehicleTypeClassificationOrder
             'tire_technology',  // classification-only: not in suffix order for this type
             'country',          // classification-only: not in suffix order for this type
             'load_range',       // classification-only: not in suffix order for this type
+            'ice_grip',         // classification-only: not in suffix order for this type
         ],
         2  => [
             'reinforcement', 'runflat', 'rim_protector', 'homologation', 'seal', 'silent',
@@ -70,6 +73,7 @@ final class VehicleTypeClassificationOrder
             'tire_technology',  // classification-only: not in suffix order for this type
             'country',          // classification-only: not in suffix order for this type
             'load_range',       // classification-only: not in suffix order for this type
+            'ice_grip',         // classification-only: not in suffix order for this type
         ],
         3  => [
             'reinforcement', 'runflat', 'rim_protector', 'homologation', 'seal', 'silent',
@@ -78,6 +82,7 @@ final class VehicleTypeClassificationOrder
             'tire_technology',  // classification-only: not in suffix order for this type
             'country',          // classification-only: not in suffix order for this type
             'load_range',       // classification-only: not in suffix order for this type
+            'ice_grip',         // classification-only: not in suffix order for this type
         ],
         4  => [
             'tube_type', 'ply_rating', 'season', 'reinforcement', 'tire_technology',

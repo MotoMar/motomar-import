@@ -138,6 +138,15 @@ it('classifies a load range next to the ply rating it restates', function (int $
     expect($result)->toBe(['ply_rating' => ['10PR'], 'load_range' => ['LRE']]);
 })->with([1, 2, 3]);
 
+it('classifies the ice grip pictogram next to 3PMSF', function (int $vehicleType): void {
+    $result = (new TireParametersBuilder())->buildParameters(
+        tireRow('3PMSF;Ice Grip', vehicleType: $vehicleType),
+        dictionary(),
+    );
+
+    expect($result)->toBe(['season' => ['3PMSF'], 'ice_grip' => ['Ice Grip']]);
+})->with([1, 2, 3]);
+
 it('encodes an empty classification as an empty JSON object', function (): void {
     expect(TireParametersBuilder::toJson([]))->toBe('{}');
 });
