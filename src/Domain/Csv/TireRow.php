@@ -24,6 +24,8 @@ final readonly class TireRow
     public string $waves;
     public string $eprelId;
     public float $price;
+    /** Sezon podpowiadany przez plik (nazwa z `tires_seasons`), pusty, gdy plik go nie podaje. */
+    public string $season;
 
     /**
      * @param array<string, string> $data One CSV line, keyed by column name
@@ -48,6 +50,7 @@ final readonly class TireRow
         $this->waves               = trim($data['fale']);
         $this->eprelId             = trim($data['eprel']);
         $this->price               = self::parsePrice($data['netto']);
+        $this->season              = trim($data['sezon'] ?? '');
     }
 
     private static function parsePrice(string $raw): float

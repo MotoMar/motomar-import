@@ -26,6 +26,11 @@ return [
         'opor', 'mokre', 'halas', 'fale', 'eprel', 'netto',
     ],
 
+    // Kolumny na końcu wiersza, których może nie być: plik z 18 kolumnami (dostawcy,
+    // starsze przeróbki) czyta się jak dawniej. `sezon` to nazwa z `tires_seasons`,
+    // podpowiedź dla nowego modelu w kroku 3 (AKN-759).
+    'csv_optional_columns' => ['sezon'],
+
     'upload_max_size_mb' => 10,
 
     'valid_rolling_resistance' => ['A', 'B', 'C', 'D', 'E', 'F', 'G'],

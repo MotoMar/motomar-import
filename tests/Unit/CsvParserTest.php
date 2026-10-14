@@ -137,3 +137,70 @@ it('leaves out rows with no producer or no model', function (): void {
 
     unlink($path);
 });
+
+function parserWithSeason(): CsvParser
+{
+    return new CsvParser(CSV_COLUMNS, ['sezon']);
+}
+
+it('reads the optional season column', function (): void {
+    $path = pricelist([
+        '1@@8808563600802@@Hankook@O@Model@205/50R17@@93V@@XL@B@D@70@B@1@@Letnia',
+    ]);
+
+    expect(parserWithSeason()->parseFile($path)[0]->season)->toBe('Letnia');
+
+    unlink($path);
+});
+
+it('reads an 18-column line when the season column is optional', function (): void {
+    $path = pricelist([
+        '1@@8808563600802@@Hankook@O@Model@205/50R17@@93V@@XL@B@D@70@B@1@10,00',
+    ]);
+
+    $rows = parserWithSeason()->parseFile($path);
+
+    expect($rows[0]->season)->toBe('')
+        ->and($rows[0]->price)->toBe(10.0);
+
+    unlink($path);
+});
+
+it('skips a header that names the optional column', function (): void {
+    $path = pricelist([
+        'numkat1@numkat2@ean@id@producent@rodzaj@bieznik@rozmiar@rozmiar2@indeksy@indeksy2@inne@opor@mokre@halas@fale@eprel@netto@sezon',
+        '1@@8808563600802@@Hankook@O@Model@205/50R17@@93V@@XL@B@D@70@B@1@@Zimowa',
+    ]);
+
+    expect(parserWithSeason()->parseFile($path))->toHaveCount(1);
+
+    unlink($path);
+});
+
+it('refuses a line longer than the layout and its optional columns', function (): void {
+    $path = pricelist([
+        '1@@8808563600802@@Hankook@O@Model@205/50R17@@93V@@XL@B@D@70@B@1@@Letnia@nadmiar',
+    ]);
+
+    expect(fn () => parserWithSeason()->parseFile($path))
+        ->toThrow(RuntimeException::class, 'expected 18–19 columns, got 20');
+
+    unlink($path);
+});
+
+it('counts the seasons each model\'s rows name', function (): void {
+    $path = pricelist([
+        '1@@8808563600802@@Hankook@O@Model@205/50R17@@93V@@XL@B@D@70@B@1@@Letnia',
+        '2@@8808563600796@@Hankook@O@Model@205/55R16@@94V@@XL@B@D@70@B@2@@letnia',
+        '3@@8808563600789@@Hankook@O@Model@215/55R16@@97V@@XL@B@D@70@B@3@@Zimowa',
+        '4@@8808563600772@@Hankook@O@Model@225/55R16@@99V@@XL@B@D@70@B@4@@',
+    ]);
+
+    $parser = parserWithSeason();
+    $models = $parser->extractUniqueModels($parser->parseFile($path));
+
+    expect($models['Hankook|Model']['seasons'])->toBe(['letnia' => 2, 'zimowa' => 1])
+        ->and($models['Hankook|Model']['count'])->toBe(4);
+
+    unlink($path);
+});
