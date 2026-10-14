@@ -149,8 +149,7 @@ numkat1@numkat2@ean@id@producent@rodzaj@bieznik@rozmiar@rozmiar2@indeksy@indeksy
 ```
 
 Plik z 18 kolumnami czyta się jak przed AKN-759 — z tego formatu korzystają też
-dostawcy. Układ kolumn ma kopię w `PricelistRow::COLUMNS` w motomar-data-fixer
-(`checkPricelist`); zmiana tutaj musi pójść i tam.
+dostawcy.
 
 Kontrakty, które parser egzekwuje albo na których polega import:
 
@@ -323,6 +322,42 @@ Nagłówek = numer wiersza (od 0) w `openpyxl`. „EPREL" mówi, gdzie leży num
 | `VREDESTEIN_…_01.05.2026` | VREDESTEIN, VREDESTEIN CLASSIC | 8 / 5 | `EPREL CODE` | zastępuje plik z 01.06.2025 (651 wspólnych EAN) |
 | `VREDESTEIN_…_01062025` | — | — | — | **zastąpiony**; kolumna ceny to `#REF!` |
 
+### Sprawdzanie cennika w EPREL (`bin/eprelCheck.php`)
+
+Każdy przerobiony cennik przechodzi przez rejestr, zanim pójdzie do importu
+(zasada 4). Własne narzędzie motomar-import (AKN-760); `checkPricelist`
+w motomar-data-fixer jest osobnym, niezależnym narzędziem.
+
+```bash
+php bin/eprelCheck.php [--out=RAPORT.csv] [--concurrency=6] [--cache-days=7] [--problems] CENNIK.csv
+php bin/eprelExport.php [KATALOG]    # eksport dzienny, wymaga EPREL_API_KEY w .env
+```
+
+- Cennik czyta parser importu (`CsvParser` z układem z `config/app.php`) — nie
+  ma drugiej kopii kolumn.
+- Raport: kolumny `linia…nazwa_modelu`, wyniki `OK`, `ROZJAZD`, `BEZ_EPREL`,
+  `BRAK_W_EPREL`, `BLAD_POBRANIA`, rozjazdy jako `pole: nasze → ich`. Na tym
+  stoi `tools/enis/apply_eprel.py` — zmiana nazwy pola albo zapisu psuje go po
+  cichu.
+- Rozmiar obu stron czyta `App\Eprel\TyreSize` z napisu (metryczny, calowy
+  `7.50R16`, bez profilu `185R14`, flotacyjny `31x10.50R15`), bo liczby
+  w rejestracji bywają przesunięte.
+- Rozstrzygnięte odpowiedzi (200 z JSON-em, 404, odmowa z kodem) lądują
+  w `tmp/eprel-cache/` na 7 dni: drugi przebieg tego samego cennika nie pyta
+  API wcale.
+
+Pułapki API (sprawdzone 2026-10-14):
+
+- **Bez nagłówka `User-Agent` CloudFront odpowiada 403 na każde żądanie**,
+  a bez `Referer` ze stroną produktu API odmawia tak, jakby rejestracji nie było.
+- **Ponawianie odmów kończy się blokadą IP.** Pierwsza wersja klienta bez
+  `User-Agent` ponawiała gołe 403 dla 44 tys. numerów i EPREL zablokował nasz
+  adres na kilkanaście minut — także zwykły `curl`. Dlatego ponawiamy tylko
+  brak połączenia, 429 i 5xx, a przebieg zaczyna od 20 numerów i przerywa się,
+  gdy żaden nie da rozstrzygniętej odpowiedzi.
+- **Limit: 50 000 żądań na 5 minut** bez klucza; z kluczem (eksport,
+  wyszukiwanie) 5 na sekundę.
+
 ### Baza produktowa Enis (`tools/enis/`)
 
 `Cenniki/Baza produktowa.xlsx` od Enisa (157 tys. opon, 241 marek, jeden
@@ -330,18 +365,14 @@ układ kolumn dla wszystkich) → CSV importu per producent w
 `Cenniki/Enis/CSV/`. Jeden przebieg (AKN-756):
 
 ```bash
-# świeży eksport EPREL — wymaga EPREL_API_KEY, w motomar-data-fixer
-php bin/fetchExport.php --dir=claude/cache/export-RRRR-MM-DD
-tools/enis/run.sh ~/Development/MotoMar/motomar-data-fixer/claude/cache/export-RRRR-MM-DD
+tools/enis/run.sh    # eksport dzienny EPREL pobiera sam, raz dziennie (bin/eprelExport.php)
 ```
 
 Skrypty to Python (3.9, `openpyxl` z site-packages użytkownika — stąd
 `python3 -E`, a nie `-I`) plus dwa skrypty PHP na kodzie importu:
 `validate.php` (parser kroku 1; kod wyjścia 1 przy złym wierszu) i `sim.php`
 (nowe nazwy istniejących opon). Dane robocze w `tmp/enis/`. Z bazy tylko czyta
-(`motomar_dev`, zmienna `DB`). `checkPricelist` leży na gałęzi
-`aknicram/eprel-pricelist-check` w motomar-data-fixer, **nie na `main`** —
-ścieżkę do jej worktree daje `EPREL_PRICELIST`.
+(`motomar_dev`, zmienna `DB`). Numery EPREL sprawdza `bin/eprelCheck.php`.
 
 Kontrakty:
 
@@ -411,8 +442,9 @@ Kontrakty pilnują testy (bez zależności poza Pythonem):
 Pułapki:
 
 - **API EPREL po numerze ma limit 50 000 żądań na 5 minut.** Dwa przebiegi
-  `checkPricelist` po 44 tys. numerów jeden po drugim dały 14 200 błędów
-  pobrania zamiast ~1 000 — między nimi trzeba odczekać.
+  po 44 tys. numerów jeden po drugim dały 14 200 błędów pobrania zamiast
+  ~1 000. Cache `bin/eprelCheck.php` to rozwiązuje — powtórny przebieg tego
+  samego dnia pyta tylko o numery, których nie ma w cache'u.
 - `Enis - ryzyka.csv` zakłada od nowa `convert.py`, kolejne kroki dopisują.
   Kroku ze środka nie uruchamiaj osobno, bo raport się zdubluje — cały `run.sh`.
 - `publish.py` czyści `Cenniki/Enis/CSV/` przed zapisem: to wyłącznie jego wyjście.
