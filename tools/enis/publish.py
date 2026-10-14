@@ -1,7 +1,7 @@
-"""Copy the per-producer CSVs to $CENNIKI/Enis/CSV with their name changes, the new treads and a summary.
+"""Kopiuje CSV producentów do $CENNIKI/Enis/CSV razem ze zmianami nazw, nowymi bieżnikami i podsumowaniem.
 
-The folder is this script's output and nothing else: it is emptied before writing, so a producer that
-dropped out leaves no stale file behind — but only once the new output is there and complete."""
+Ten katalog to wyjście tego skryptu i nic więcej: przed zapisem jest czyszczony, żeby producent, który
+wypadł, nie zostawił starego pliku — ale dopiero gdy nowy wynik jest na miejscu i kompletny."""
 import collections, csv, os, shutil, sys
 import openpyxl
 
@@ -18,7 +18,7 @@ rows = list(csv.DictReader(open('out/final.csv', encoding='utf-8'), delimiter='@
 missing = [p for p in ('out/Enis - ryzyka.csv', 'out/Enis - nowe bieżniki.csv') if not os.path.exists(p)]
 missing += [f'out/CSV/{p}.csv' for p in {r['producent'] for r in rows} if not os.path.exists(f'out/CSV/{p}.csv')]
 if not rows or missing:
-    # the previous output stays until there is a complete one to replace it
+    # poprzedni wynik zostaje, dopóki nie ma kompletnego, który go zastąpi
     sys.exit(f"Nie publikuję: {'final.csv jest pusty' if not rows else 'brak ' + ', '.join(missing)}")
 shutil.rmtree(DEST, ignore_errors=True)
 os.makedirs(DEST)
@@ -28,7 +28,7 @@ new_treads = collections.defaultdict(set)
 for r in rows:
     s = stats[r['producent']]
     s['wierszy'] += 1
-    is_new = r['ean'] not in existing and (producer_id[r['producent']], r['numkat1']) not in refs  # import matches by ref too
+    is_new = r['ean'] not in existing and (producer_id[r['producent']], r['numkat1']) not in refs  # import szuka też po numkacie
     s['nowe' if is_new else 'aktualizacje'] += 1
     if (producer_id[r['producent']], r['bieznik']) not in base_treads:
         new_treads[r['producent']].add(r['bieznik'])

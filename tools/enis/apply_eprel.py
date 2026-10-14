@@ -1,31 +1,32 @@
-"""checkPricelist's report (`out/eprel.csv`) applied to `out/Enis - do EPREL.csv`, then one CSV per producer.
+"""Raport checkPricelist (`out/eprel.csv`) zastosowany do `out/Enis - do EPREL.csv`, potem CSV per producent.
 
-EPREL wins over Enis (CLAUDE.md, rule 4) only where the number is this tire's, and that is settled before
-anything is taken from it: a number the register does not know, or whose registration has another size,
-load index, speed index or GTIN, is removed and gives the row nothing — the tire stays, its identity is the
-EAN. A speed index the register disagrees with is not Enis's mistake to correct: nothing confirms the number.
-Then:
-- label classes and dB from the register; a label Enis left out is filled from it;
-- C and 3PMSF the register names are added; C only when the register's designation carries it (`195/75R16C`),
-  because the checker also reads C off LT tires; 3PMSF the register denies is removed unless the base has it;
-- XL is decided by the load index (above the standard index of that size in the base); the register's word
-  counts only when it agrees, and never against HL;
-- a dual load index (`102/100`) the register gives a new C tire replaces Enis's single one;
-- the register's brand spelling (`NEXENTIRE`, `GOODRIDE`) is not a mismatch on its own.
+EPREL wygrywa z Enisem (CLAUDE.md, zasada 4) tylko na numerze tej opony, a to rozstrzyga się, zanim
+cokolwiek z niego weźmiemy: numer, którego rejestr nie zna, albo rejestracja z innym rozmiarem, indeksem
+nośności, indeksem prędkości lub GTIN-em jest usuwana i nie daje wierszowi nic — opona zostaje, jej
+tożsamością jest EAN. Indeks prędkości, z którym rejestr się nie zgadza, to nie błąd Enisa do poprawienia:
+nic nie potwierdza, że numer jest tej opony.
+Potem:
+- klasy etykiety i dB z rejestru; etykietę, której Enis nie podał, uzupełnia rejestr;
+- C i 3PMSF, które podaje rejestr, są dopisywane; C tylko gdy oznaczenie w rejestrze je ma (`195/75R16C`),
+  bo checker czyta C także z opon LT; 3PMSF, któremu rejestr przeczy, wypada, chyba że ma je baza;
+- o XL decyduje indeks nośności (powyżej standardowego dla rozmiaru w bazie); słowo rejestru liczy się
+  tylko, gdy się z nim zgadza, i nigdy przeciw HL;
+- podwójny indeks nośności (`102/100`), który rejestr podaje nowej oponie C, zastępuje pojedynczy Enisa;
+- pisownia marki w rejestrze (`NEXENTIRE`, `GOODRIDE`) sama nie jest rozjazdem.
 
-No duplicate tires, last, once the marks are final. A new tire (EAN and catalogue number unknown to the base)
-is dropped when it is a tire we already have or already write:
-- its EPREL number belongs to a base tire of the producer, or to an earlier row (Kumho, AKN-748);
-- a base tire (with an EAN or without), or an earlier new row, has the same tread, size, full indices
-  (`104/102R` meets only `104/102R`) and identity marks: the same
-  homologations, and run-flat, seal and silent present or absent (each brand has its own code for them) —
-  unless both carry EPREL numbers and they differ: two registrations are two tires (Falken `336735`/`336735TH`).
-  Reinforcement is left out because the load index already says it, and the rim protector because the base
-  writes it four ways (FR, FSL, MFS, FP) and leaves it out as often.
-Rows that update a base tire go first, then new ones with an EPREL number, then with a label, so the copy
-that stays is the best documented one.
+Żadnych duplikatów opon — na końcu, gdy oznaczenia są już ostateczne. Nowa opona (EAN i numkat nieznane
+bazie) wypada, gdy to opona, którą już mamy albo już zapisujemy:
+- jej numer EPREL ma opona producenta w bazie albo wcześniejszy wiersz (Kumho, AKN-748);
+- opona z bazy (z EAN-em albo bez) albo wcześniejszy nowy wiersz ma ten sam bieżnik, rozmiar, pełne
+  indeksy (`104/102R` spotyka tylko `104/102R`) i oznaczenia tożsamości: te same homologacje oraz
+  run-flat, uszczelnienie i wyciszenie obecne albo nie (każda marka ma na nie własny kod) — chyba że obie
+  mają numery EPREL i są one różne: dwie rejestracje to dwie opony (Falken `336735`/`336735TH`).
+  Wzmocnienie jest poza porównaniem, bo mówi o nim już indeks nośności, a rant, bo baza zapisuje go na
+  cztery sposoby (FR, FSL, MFS, FP) i równie często go pomija.
+Najpierw idą wiersze aktualizujące oponę z bazy, potem nowe z numerem EPREL, potem z etykietą, więc
+zostaje najlepiej udokumentowana kopia.
 
-Writes `out/CSV/<Producent>.csv` and appends to `out/Enis - ryzyka.csv`.
+Pisze `out/CSV/<Producent>.csv` i dopisuje do `out/Enis - ryzyka.csv`.
 """
 import collections
 import csv
@@ -55,7 +56,6 @@ def identity(other):
 
 
 def spec(pp, tread, size, li, si):
-    """Duplicate key; the base and the CSV both go through here, `li` whole (`104/102`)."""
     return pp, (tread or '').lower(), size, li, si
 
 
@@ -74,7 +74,7 @@ for d in csv.DictReader(open('db_all.tsv', encoding='utf-8'), delimiter='\t'):
     existing_refs.add((d['pp'], d['ref']))
     if d['eprel_id'] not in ('', 'NULL', '0'):
         base_eprel.add((d['pp'], d['eprel_id']))
-    # tires without an EAN too: Accelera 6526 has none, and its ref is the EAN Enis gives under another numkat
+    # także opony bez EAN-u: Accelera 6526 go nie ma, a w `ref` ma EAN, który Enis podaje pod innym numkatem
     base_spec[spec(d['pp'], d['tread'], d['tire_size'], d['tire_li'], d['tire_si'])].append(
         (identity(d['other'] if d['other'] != 'NULL' else ''), d['eprel_id'] if d['eprel_id'] not in ('', 'NULL', '0') else '', d['id']))
     base_other[d['ean']] = {t.strip() for t in d['other'].split(';')}
@@ -84,7 +84,7 @@ for d in csv.DictReader(open('db_all.tsv', encoding='utf-8'), delimiter='\t'):
 
 
 def is_new(r):
-    """Neither the EAN nor the catalogue number is in the base — the import matches by both."""
+    """Ani EAN-u, ani numkatu nie ma w bazie — import szuka po obu."""
     return r['ean'] not in existing_eans and (producer_id[r['producent']], r['numkat1']) not in existing_refs
 
 
@@ -109,7 +109,7 @@ for e in csv.DictReader(open(f'{OUT}/eprel.csv', encoding='utf-8')):
         continue
     parts = [p for p in e['rozjazdy'].split('; ') if p and not p.startswith('marka: ')]
     fields = {p.split(': ', 1)[0] for p in parts}
-    # `szerokość` on an inch size (`31x10.50R15`) is the checker reading the width two ways, not another tire
+    # `szerokość` przy rozmiarze calowym (`31x10.50R15`) to checker czytający szerokość na dwa sposoby, nie inna opona
     wrong = e['wynik'] == 'BRAK_W_EPREL' or bool(fields & IDENTITY) or ('szerokość' in fields and 'x' not in r['rozmiar'])
     if wrong:
         what = 'nic nie zwraca' if e['wynik'] == 'BRAK_W_EPREL' else f"to inna opona: {e['rozjazdy']} ({e['eprel_oznaczenie']})"
@@ -118,12 +118,12 @@ for e in csv.DictReader(open(f'{OUT}/eprel.csv', encoding='utf-8')):
         continue
     label = re.fullmatch(r'([A-G])/([A-G])/(\d+) dB/([A-C])', e['eprel_etykieta'] or '')
     if label and not r['opor']:
-        # Enis left the label out or wrote it wrong (`7` dB): the register has it
+        # Enis nie podał etykiety albo podał złą (`7` dB): rejestr ją ma
         r['opor'], r['mokre'], r['halas'], r['fale'] = label.groups()
         log.append((r, 'etykieta z EPREL', e['eprel_etykieta']))
     dual = re.search(r'\s(\d{2,3})/(\d{2,3})\s*[A-Z]\b', e['eprel_oznaczenie'] or '')
     if is_new(r) and dual and re.fullmatch(dual.group(1) + r'[A-Z]', r['indeksy']):
-        # Enis gives C tires one load index (`102`), the register both (`102/100`), as the base keeps them
+        # Enis daje oponom C jeden indeks nośności (`102`), rejestr oba (`102/100`), tak jak trzyma je baza
         r['indeksy'] = f"{dual.group(1)}/{dual.group(2)}{r['indeksy'][-1]}"
         log.append((r, 'podwójny LI z EPREL', e['eprel_oznaczenie']))
     for part in parts:
@@ -138,7 +138,7 @@ for e in csv.DictReader(open(f'{OUT}/eprel.csv', encoding='utf-8')):
         elif field in ('C', '3PMSF') and after == 'tak':
             tokens.append(field)
         elif field == '3PMSF' and '3PMSF' not in base_other.get(r['ean'], set()):
-            # Enis marks summer tires 3PMSF (Radial RA10, PMS01); the base did not, the register says no
+            # Enis oznacza 3PMSF opony letnie (Radial RA10, PMS01); baza nie, rejestr mówi, że nie
             tokens = [t for t in tokens if t != '3PMSF']
         elif field == 'XL' and 'HL' in tokens:
             log.append((r, 'EPREL — rozjazd', f'{part} — opona HL, zostaje HL'))
@@ -155,7 +155,7 @@ for e in csv.DictReader(open(f'{OUT}/eprel.csv', encoding='utf-8')):
         r['inne'] = ';'.join(dict.fromkeys(tokens))
         log.append((r, 'EPREL poprawia Enisa', f"{part} (EPREL {r['eprel']}: {e['eprel_oznaczenie']}, {e['eprel_etykieta']})"))
 
-# rows that already know their tire first, then new ones with an EPREL number, then with a label
+# najpierw wiersze, które znają swoją oponę, potem nowe z numerem EPREL, potem z etykietą
 order = sorted(rows, key=lambda r: (is_new(r), not r['eprel'], not r['opor']))
 seen_eprel, seen_spec, dropped = set(), collections.defaultdict(list), set()
 for r in order:

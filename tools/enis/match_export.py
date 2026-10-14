@@ -1,14 +1,14 @@
-"""Find EPREL registrations for new tires Enis gives neither a number nor a label, in the daily export.
+"""Rejestracje EPREL w eksporcie dziennym dla nowych opon, którym Enis nie podał ani numeru, ani etykiety.
 
-The export has no EANs and no commercial names (1 of 331 195 models, 2026-10-14), and the API by number
-has no name either for most suppliers, so the only key is the supplier's model identifier: where Enis's
-catalogue number is the manufacturer's own (Michelin, Nokian, Kumho, Hankook, Yokohama), it equals
-`modelIdentifier`. Where Enis's `kod` is the EAN (Bridgestone, Nexen, Sailun…), nothing can be found.
+Eksport nie ma EAN-ów ani nazw handlowych (1 z 331 195 modeli, 2026-10-14), a API po numerze też nie ma
+nazwy u większości dostawców, więc jedynym kluczem jest identyfikator modelu dostawcy: tam, gdzie numkat
+Enisa to kod producenta (Michelin, Nokian, Kumho, Hankook, Yokohama), równa się `modelIdentifier`. Tam,
+gdzie `kod` Enisa to EAN (Bridgestone, Nexen, Sailun…), nic się nie znajdzie.
 
-A match needs the same brand, size, load index, speed index and model identifier. Tires: new (neither EAN
-nor catalogue number in the base) with neither an EPREL number nor a label.
-Reads $EPREL_EXPORT/tyres_*.json (data-fixer's bin/fetchExport.php). Writes `out/eksport-eprel.csv`;
-promote.py takes the rows with exactly one match.
+Dopasowanie wymaga tej samej marki, rozmiaru, indeksu nośności, indeksu prędkości i identyfikatora modelu.
+Opony: nowe (ani EAN-u, ani numkatu w bazie), bez numeru EPREL i bez etykiety.
+Czyta $EPREL_EXPORT/tyres_*.json (bin/fetchExport.php w data-fixerze). Pisze `out/eksport-eprel.csv`;
+promote.py bierze wiersze z dokładnie jednym dopasowaniem.
 """
 import collections
 import csv
@@ -46,7 +46,7 @@ def brand_of(trademark):
     t = squash(trademark)
     if t in brands:
         return t
-    for b in brands:  # `EVENT` is our `Event Tyre`, `NOKIANTYRES` our `Nokian Tyres`
+    for b in brands:  # `EVENT` to nasz `Event Tyre`, `NOKIANTYRES` nasz `Nokian Tyres`
         if len(b) >= 4 and len(t) >= 4 and (t.startswith(b) or b.startswith(t)):
             return b
     return None

@@ -1,8 +1,8 @@
-"""New treads in out/final.csv with the closest existing tread of the producer, for step 2 of the import.
+"""Nowe bieżniki z out/final.csv z najbliższym istniejącym bieżnikiem producenta, do kroku 2 importu.
 
-The tread name is Enis's `Bieżnik` column; what this list catches is the same tread spelled another way
-(`Hakka Black SUV` / `Hakkapeliitta Black SUV`), which would otherwise become a second tread.
-Writes `out/Enis - nowe bieżniki.csv`.
+Nazwa bieżnika to kolumna `Bieżnik` Enisa; ta lista łapie ten sam bieżnik zapisany inaczej
+(`Hakka Black SUV` / `Hakkapeliitta Black SUV`), który inaczej stałby się drugim bieżnikiem.
+Pisze `out/Enis - nowe bieżniki.csv`.
 """
 import collections
 import csv

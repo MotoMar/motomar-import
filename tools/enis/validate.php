@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-// Every row of an import CSV through the parser step 1 uses: size, indices, EAN, producer, tread.
-// Exits 1 on any row the import would reject, so run.sh stops before publishing.
+// Każdy wiersz CSV importu przez parser kroku 1: rozmiar, indeksy, EAN, producent, bieżnik.
+// Kończy się kodem 1 przy wierszu, który import by odrzucił, więc run.sh staje przed publikacją.
 //
 //   php tools/enis/validate.php CSV
 
