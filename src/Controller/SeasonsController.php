@@ -9,6 +9,7 @@ use App\Request;
 use App\Bootstrap;
 use App\Csrf;
 use App\Domain\Import\ImportSession;
+use App\Domain\Import\SeasonSuggestion;
 use App\Domain\Tire\TireRepository;
 
 final class SeasonsController
@@ -37,6 +38,18 @@ final class SeasonsController
             static fn (mixed $m): bool => is_array($m) && RowField::flag(RowField::normalise($m), 'is_new'),
         );
         $seasons   = $this->repo->allSeasons();
+        $models    = $this->session->readArray($uuid, 'models');
+        $suggestions = [];
+
+        foreach (array_keys($newModels) as $key) {
+            $model  = RowField::normalise(is_array($models[$key] ?? null) ? $models[$key] : []);
+            $counts = RowField::normalise(is_array($model['seasons'] ?? null) ? $model['seasons'] : []);
+
+            $suggestions[$key] = SeasonSuggestion::from(
+                array_map(static fn (mixed $count): int => is_int($count) ? $count : 0, $counts),
+                $seasons,
+            );
+        }
 
         require dirname(__DIR__, 2) . '/templates/step3.php';
     }

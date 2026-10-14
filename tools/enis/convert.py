@@ -30,7 +30,9 @@ import sys
 
 OUT = 'out'
 ONLY = {p.lower() for p in sys.argv[1:]}
-COLUMNS = 'numkat1 numkat2 ean id producent rodzaj bieznik rozmiar rozmiar2 indeksy indeksy2 inne opor mokre halas fale eprel netto'.split()
+COLUMNS = 'numkat1 numkat2 ean id producent rodzaj bieznik rozmiar rozmiar2 indeksy indeksy2 inne opor mokre halas fale eprel netto sezon'.split()
+# kolumna `sezon` Enisa → nazwa z `tires_seasons`; import podpowiada ją w kroku 3 dla nowego modelu (AKN-759)
+SEASON = {'letnie': 'Letnia', 'zimowe': 'Zimowa', 'całoroczne': 'Całoroczna'}
 VT = {'1': 'O', '2': 'D', '3': 'T'}
 TYPE = {'osobowy': 'O', 'dostawczy': 'D', '4x4': 'T', 'runflat': 'O', 'wyścigowy': 'O'}
 # oznaczenia, które baza trzyma w `other`, nigdy w nazwie bieżnika (`X-Ice XI3 ZP` to `X-Ice XI3` z ZP)
@@ -390,6 +392,7 @@ for r in rows:
         'numkat1': code, 'ean': ean, 'producent': producer, 'rodzaj': rodzaj, 'bieznik': tread_out,
         'rozmiar': size, 'indeksy': f'{li}{si}', 'inne': ';'.join(tokens),
         'opor': fuel, 'mokre': wet, 'halas': noise_db, 'fale': noise_class, 'eprel': eprel,
+        'sezon': SEASON.get(str(r.get('sezon') or '').strip().lower(), ''),
     })
 
 # jedna pisownia nowego bieżnika: `Van`/`VAN`, `Ice Gripper`/`ICE GRIPPER` dostają najczęstszą

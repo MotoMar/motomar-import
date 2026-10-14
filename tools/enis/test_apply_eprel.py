@@ -13,7 +13,7 @@ import unittest
 from pathlib import Path
 
 TOOLS = Path(__file__).resolve().parent
-COLUMNS = 'numkat1 numkat2 ean id producent rodzaj bieznik rozmiar rozmiar2 indeksy indeksy2 inne opor mokre halas fale eprel netto'.split()
+COLUMNS = 'numkat1 numkat2 ean id producent rodzaj bieznik rozmiar rozmiar2 indeksy indeksy2 inne opor mokre halas fale eprel netto sezon'.split()
 DB_COLUMNS = 'id pp ean ref tread tire_size tire_li tire_si other vt eprel_id rr wg nd nc'.split()
 REPORT_COLUMNS = 'ean wynik rozjazdy eprel_etykieta eprel_oznaczenie'.split()
 

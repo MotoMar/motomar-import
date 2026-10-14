@@ -104,6 +104,16 @@ final class Bootstrap
     }
 
     /**
+     * Kolumny, które mogą iść po układzie z `csvColumns()` albo nie być wcale.
+     *
+     * @return string[]
+     */
+    public static function csvOptionalColumns(): array
+    {
+        return self::stringList('csv_optional_columns');
+    }
+
+    /**
      * Maps the one-letter vehicle type from the price list to our type id.
      *
      * A shortcut that is not in here resolves to 0 at the call site, and type 0

@@ -13,7 +13,7 @@ use App\Domain\Csv\CsvParser;
 use App\Domain\Tire\SizeParser;
 
 $columns = explode(' ', 'numkat1 numkat2 ean id producent rodzaj bieznik rozmiar rozmiar2 indeksy indeksy2 inne opor mokre halas fale eprel netto');
-$rows = (new CsvParser($columns))->parseFile($argv[1] ?? '');
+$rows = (new CsvParser($columns, ['sezon']))->parseFile($argv[1] ?? '');
 $bad = 0;
 $labels = 0;
 

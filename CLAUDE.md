@@ -121,6 +121,12 @@ kolumnę za uszkodzoną.
 `LIMIT N` po `id` opisuje jeden model, nie populację. Pierwsze 20 opon dało 70%
 błędów, losowe 25 — 20%.
 
+**Worktree z dowiązanym `vendor` testuje kod z głównego checkoutu.** Autoloader
+Composera trzyma ścieżki do `src` względem prawdziwego położenia `vendor`, więc
+symlink do `motomar-import/vendor` każe Pestowi ładować tamte klasy. Worktree
+dostaje własną kopię i `php composer.phar dump-autoload` (AKN-759: 11 testów
+padło na starym parserze, choć zmiana była w worktree).
+
 ## Cenniki dostawców
 
 Przerabiamy cenniki producentów (xlsx) na CSV, które przyjmuje krok 1 importu.
@@ -134,12 +140,17 @@ nazwa pliku przychodzi w nagłówku. Stan z 2026-10-02: 28 plików.
 
 ### Format docelowy
 
-18 kolumn, separator `@`, nagłówek opcjonalny, UTF-8. Układ pochodzi z
-`config/app.php` (`csv_columns`), parser to `src/Domain/Csv/CsvParser.php`:
+18 kolumn i opcjonalna 19. `sezon`, separator `@`, nagłówek opcjonalny, UTF-8.
+Układ pochodzi z `config/app.php` (`csv_columns`, `csv_optional_columns`),
+parser to `src/Domain/Csv/CsvParser.php`:
 
 ```
-numkat1@numkat2@ean@id@producent@rodzaj@bieznik@rozmiar@rozmiar2@indeksy@indeksy2@inne@opor@mokre@halas@fale@eprel@netto
+numkat1@numkat2@ean@id@producent@rodzaj@bieznik@rozmiar@rozmiar2@indeksy@indeksy2@inne@opor@mokre@halas@fale@eprel@netto[@sezon]
 ```
+
+Plik z 18 kolumnami czyta się jak przed AKN-759 — z tego formatu korzystają też
+dostawcy. Układ kolumn ma kopię w `PricelistRow::COLUMNS` w motomar-data-fixer
+(`checkPricelist`); zmiana tutaj musi pójść i tam.
 
 Kontrakty, które parser egzekwuje albo na których polega import:
 
@@ -153,6 +164,7 @@ Kontrakty, które parser egzekwuje albo na których polega import:
 | `halas` | same cyfry, `72` | — |
 | `eprel` | sam numer | w wielu cennikach jest tylko w URL-u `…/qr/<numer>` |
 | `netto` | puste | ceny katalogowej nigdzie nie pokazujemy; puste = `update_price` pomija wiersz, nowa opona dostaje `price` 0 |
+| `sezon` | nazwa z `tires_seasons`: `Letnia`, `Zimowa`, `Całoroczna`; puste albo brak kolumny = brak podpowiedzi | krok 3 zaznacza dla nowego modelu sezon, który podaje najwięcej jego wierszy; remis albo nieznana nazwa nie zaznacza nic, rozbieżność pokazuje liczby. Sezon to cecha bieżnika — przy istniejącym modelu plik nic nie zmienia |
 
 Opony C (dostawcze) dostają `C` w `inne`, nie w rozmiarze — tak leżą istniejące
 w bazie (`other = C;3PMSF;M+S`, rozmiar `195/80R15`).

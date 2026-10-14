@@ -43,6 +43,7 @@ ob_start();
         <h2 class="card-title text-2xl mb-1">Przypisanie sezonów i weryfikacja nazw</h2>
         <p class="text-base-content/70 mb-6">
             Nowe modele zostaną utworzone w bazie. Popraw nazwę jeśli trzeba i wybierz sezon.
+            Sezon podany w pliku jest już zaznaczony — sprawdź go, zwłaszcza tam, gdzie wiersze się nie zgadzają.
         </p>
 
         <form method="POST"
@@ -60,6 +61,9 @@ ob_start();
                     </thead>
                     <tbody>
                         <?php foreach ($newModels as $key => $model):
+                            $suggestion  = $suggestions[$key] ?? null;
+                            // wybór z poprzedniego wejścia w krok 3 wygrywa z podpowiedzią z pliku
+                            $chosen      = (int) ($model['season_id'] ?? 0) ?: $suggestion?->seasonId;
                             $encodedKey  = htmlspecialchars($key, ENT_QUOTES, 'UTF-8');
                             $encodedProd = htmlspecialchars($model['producer_name'], ENT_QUOTES, 'UTF-8');
                             $encodedMod  = htmlspecialchars($model['model_name'], ENT_QUOTES, 'UTF-8');
@@ -93,6 +97,7 @@ ob_start();
                                                name="season[<?= $encodedKey ?>]"
                                                value="<?= $sid ?>"
                                                class="sr-only peer"
+                                               <?= $chosen === $sid ? 'checked' : '' ?>
                                                required>
                                         <div class="w-16 h-16 rounded-xl border-2 border-base-300 ring-2 ring-transparent
                                                     transition-all <?= $ringClasses ?>
@@ -102,6 +107,16 @@ ob_start();
                                     </label>
                                     <?php endforeach; ?>
                                 </div>
+                                <?php if ($suggestion?->needsAttention): ?>
+                                <p class="text-xs text-warning text-center mt-1">
+                                    W pliku: <?= htmlspecialchars(implode(', ', array_map(
+                                        // nazwa z cyframi (`1`) staje się w PHP kluczem int
+                                        static fn (int|string $name, int $count): string => "{$name} {$count}",
+                                        array_keys($suggestion->counts),
+                                        $suggestion->counts,
+                                    )), ENT_QUOTES, 'UTF-8') ?>
+                                </p>
+                                <?php endif; ?>
                             </td>
                         </tr>
                         <?php endforeach; ?>
