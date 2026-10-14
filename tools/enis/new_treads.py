@@ -33,7 +33,7 @@ for (producer, tread), n in new.items():
                  'opon_w_bazie': base[pid[producer]].get(best, 0), 'podobienstwo': f'{score:.2f}'})
 rows.sort(key=lambda r: (r['producent'], -float(r['podobienstwo'])))
 with open('out/Enis - nowe bieżniki.csv', 'w', encoding='utf-8', newline='') as f:
-    w = csv.DictWriter(f, fieldnames=list(rows[0]), delimiter=';')
+    w = csv.DictWriter(f, fieldnames=['producent', 'bieznik_enis', 'opon', 'najblizszy_w_bazie', 'opon_w_bazie', 'podobienstwo'], delimiter=';')
     w.writeheader()
     w.writerows(rows)
 bands = collections.Counter('≥0.85' if float(r['podobienstwo']) >= 0.85 else '0.70–0.85' if float(r['podobienstwo']) >= 0.7 else '<0.70' for r in rows)
