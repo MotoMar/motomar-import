@@ -1,4 +1,4 @@
-"""Raport checkPricelist (`out/eprel.csv`) zastosowany do `out/Enis - do EPREL.csv`, potem CSV per producent.
+"""Raport `bin/eprelCheck.php` (`out/eprel.csv`) zastosowany do `out/Enis - do EPREL.csv`, potem CSV per producent.
 
 EPREL wygrywa z Enisem (CLAUDE.md, zasada 4) tylko na numerze tej opony, a to rozstrzyga się, zanim
 cokolwiek z niego weźmiemy: numer, którego rejestr nie zna, albo rejestracja z innym rozmiarem, indeksem
@@ -42,7 +42,7 @@ import re
 
 OUT = 'out'
 FIELD = {'opór toczenia': 'opor', 'przyczepność': 'mokre', 'hałas dB': 'halas', 'klasa hałasu': 'fale'}
-IDENTITY = {'profil', 'średnica', 'rozmiar', 'indeks nośności', 'indeks prędkości', 'EAN'}
+IDENTITY = {'szerokość', 'profil', 'średnica', 'rozmiar', 'indeks nośności', 'indeks prędkości', 'EAN'}
 
 PRESENCE_KINDS = {'runflat', 'seal', 'silent'}
 kinds = collections.defaultdict(set)
@@ -142,8 +142,7 @@ for e in csv.DictReader(open(f'{OUT}/eprel.csv', encoding='utf-8')):
         continue
     parts = [p for p in e['rozjazdy'].split('; ') if p and not p.startswith('marka: ')]
     fields = {p.split(': ', 1)[0] for p in parts}
-    # `szerokość` przy rozmiarze calowym (`31x10.50R15`) to checker czytający szerokość na dwa sposoby, nie inna opona
-    if e['wynik'] == 'BRAK_W_EPREL' or fields & IDENTITY or ('szerokość' in fields and 'x' not in r['rozmiar']):
+    if e['wynik'] == 'BRAK_W_EPREL' or fields & IDENTITY:
         what = 'nic nie zwraca' if e['wynik'] == 'BRAK_W_EPREL' else f"to inna opona: {e['rozjazdy']} ({e['eprel_oznaczenie']})"
         log.append((r, 'EPREL — numer usunięty', f"{r['eprel']} {what}"))
         r['eprel'] = ''

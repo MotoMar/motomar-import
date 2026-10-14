@@ -1,7 +1,7 @@
-"""Numer EPREL i etykieta dla opon, które match_export.py znalazł po numkacie — przed checkPricelist.
+"""Numer EPREL i etykieta dla opon, które match_export.py znalazł po numkacie — przed `bin/eprelCheck.php`.
 
 Czyta `out/Enis - wszystkie.csv` i `out/eksport-eprel.csv`, pisze `out/Enis - do EPREL.csv` (to czytają
-checkPricelist i apply_eprel.py) i dopisuje do `out/Enis - ryzyka.csv`.
+`bin/eprelCheck.php` i apply_eprel.py) i dopisuje do `out/Enis - ryzyka.csv`.
 """
 import csv
 import re

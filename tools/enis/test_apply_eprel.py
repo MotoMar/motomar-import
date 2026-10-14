@@ -31,7 +31,7 @@ def run(work, script, env=None):
 
 
 def apply(row_changes=None, base_changes=None, check_changes=None):
-    """apply_eprel.py na jednym wierszu CSV, najwyżej jednej oponie z bazy i najwyżej jednym wyniku checkPricelist."""
+    """apply_eprel.py na jednym wierszu CSV, najwyżej jednej oponie z bazy i najwyżej jednym wyniku `bin/eprelCheck.php`."""
     with tempfile.TemporaryDirectory(prefix='enis-test-') as directory:
         work = Path(directory)
         (work / 'out').mkdir()
