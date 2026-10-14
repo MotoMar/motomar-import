@@ -48,6 +48,11 @@ for producer in stats:
             w.writerows(changes[producer])
 shutil.copy('out/Enis - ryzyka.csv', f'{DEST}/Enis - ryzyka.csv')
 shutil.copy('out/Enis - nowe bieżniki.csv', f'{DEST}/Enis - nowe bieżniki.csv')
+# wspólny numer EPREL przy innym bieżniku: ta sama opona pod dwiema nazwami albo cudzy numer — rozstrzyga człowiek
+with open('out/Enis - ryzyka.csv', encoding='utf-8') as src, open(f'{DEST}/Enis - wspólny EPREL do przejrzenia.csv', 'w', encoding='utf-8', newline='') as f:
+    reader, w = csv.reader(src, delimiter=';'), csv.writer(f, delimiter=';')
+    w.writerow(next(reader))
+    w.writerows(r for r in reader if len(r) > 6 and r[5] in ('EPREL — numer niepewny', 'możliwy duplikat: wspólny EPREL'))
 cols = ['wierszy', 'aktualizacje', 'nowe', 'nowych bieżników', 'opon na nowych bieżnikach', 'zmian nazw']
 wb = openpyxl.Workbook(write_only=True)
 ws = wb.create_sheet('CSV z Enisa')

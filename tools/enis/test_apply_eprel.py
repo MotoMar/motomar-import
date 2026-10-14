@@ -107,6 +107,37 @@ class Duplicates(unittest.TestCase):
         self.assertEqual(len(apply({'eprel': '123'}, {'eprel_id': '456'})), 1)
 
 
+class SharedNumber(unittest.TestCase):
+    """Jeden numer EPREL przy kilku EAN-ach (AKN-758): ta sama opona albo numer cudzy po którejś stronie."""
+
+    VERIFIED = {'wynik': 'OK', 'eprel_etykieta': 'E/C/72 dB/B', 'eprel_oznaczenie': '205/55R16 91 V'}
+
+    def test_number_of_another_tread_is_dropped_but_the_tire_stays(self):
+        rows = apply({'eprel': '123'}, {'eprel_id': '123', 'tread': 'Other'}, self.VERIFIED)
+        self.assertEqual(len(rows), 1, 'cudzy numer wyrzucił prawdziwą oponę jako duplikat')
+        self.assertEqual(rows[0]['eprel'], '')
+        self.assertEqual(rows[0]['opor'], '', 'niepewny numer dał etykietę')
+
+    def test_number_of_the_same_tread_spelled_longer_is_a_duplicate(self):
+        rows = apply({'eprel': '123', 'bieznik': 'Z-401'}, {'eprel_id': '123', 'tread': 'All Season Elite Z-401'}, self.VERIFIED)
+        self.assertEqual(rows, [], 'ta sama opona pod drugim EAN-em przeszła')
+
+    def test_base_without_speed_index_still_matches(self):
+        rows = apply({'eprel': '123', 'bieznik': 'P Zero (PZ4)'}, {'eprel_id': '123', 'tread': 'P Zero', 'tire_si': ''}, self.VERIFIED)
+        self.assertEqual(rows, [], 'pusty SI w bazie przepuścił duplikat')
+
+    def test_base_size_without_profile_still_matches(self):
+        rows = apply({'eprel': '123', 'rozmiar': '195/80R14', 'indeksy': '106/104N'},
+                     {'eprel_id': '123', 'tire_size': '195R14', 'tire_li': '106/104', 'tire_si': 'N'},
+                     self.VERIFIED | {'eprel_oznaczenie': '195/80R14 106/104 N'})
+        self.assertEqual(rows, [], 'rozmiar bez profilu w bazie przepuścił duplikat')
+
+    def test_number_of_another_size_is_not_a_duplicate(self):
+        rows = apply({'eprel': '123'}, {'eprel_id': '123', 'tire_size': '225/45R17'}, self.VERIFIED)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]['eprel'], '123')
+
+
 class EmptyReports(unittest.TestCase):
     """Przebieg, w którym nic się nie kwalifikuje, jest poprawny: raporty z samym nagłówkiem, poprzedni wynik nietknięty."""
 
