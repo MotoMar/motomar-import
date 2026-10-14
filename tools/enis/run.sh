@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Enis product base -> one import CSV per producer in $CENNIKI/Enis/CSV. See CLAUDE.md, „Baza produktowa Enis”.
+# Baza produktowa Enisa → CSV importu per producent w $CENNIKI/Enis/CSV. CLAUDE.md, „Baza produktowa Enis”.
 #
 #   tools/enis/run.sh EXPORT_DIR [XLSX]
 #
-# EXPORT_DIR: EPREL daily export, fresh — `php bin/fetchExport.php --dir=…` in motomar-data-fixer.
-# Reads motomar_dev only; writes nothing to any database.
+# EXPORT_DIR: świeży eksport dzienny EPREL — `php bin/fetchExport.php --dir=…` w motomar-data-fixer.
+# Z motomar_dev tylko czyta; do żadnej bazy nic nie zapisuje.
 set -euo pipefail
 
 TOOLS=$(cd "$(dirname "$0")" && pwd)
@@ -14,7 +14,7 @@ export CENNIKI=${CENNIKI:-$HOME/Development/MotoMar/Cenniki}
 XLSX=${2:-$CENNIKI/Baza produktowa.xlsx}
 WORK=${WORK:-$REPO/tmp/enis}
 DB=${DB:-motomar_dev}
-# checkPricelist lives on motomar-data-fixer's branch aknicram/eprel-pricelist-check, not on main
+# checkPricelist leży na gałęzi aknicram/eprel-pricelist-check w motomar-data-fixer, nie na main
 EPREL_PRICELIST=${EPREL_PRICELIST:-$HOME/Development/MotoMar/wt/eprel-pricelist}
 PY="python3 -E"
 PHP=${PHP:-php}
@@ -24,7 +24,7 @@ cd "$WORK"
 rm -rf out/CSV
 
 sql() { mysql --default-character-set=utf8mb4 -B "$DB" -e "$1"; }
-# `mysql -B` escapes \n but passes \r through, and Python splits lines on it: tread 6027 is `Surpax SP5 \r\n(duplikat)`
+# `mysql -B` zamienia \n na `\n`, ale \r przepuszcza, a Python łamie na nim linię: bieżnik 6027 to `Surpax SP5 \r\n(duplikat)`
 flat() { echo "REGEXP_REPLACE($1, '[\\r\\n\\t]+', ' ') $2"; }
 sql "SELECT p.id, p.producer, COUNT(t.id) n FROM products_producers p LEFT JOIN tires t ON t.id_product_producer = p.id GROUP BY p.id" > producers.tsv
 sql "SELECT t.id, t.id_product_producer pp, t.ean, t.ref, $(flat tt.tread tread), t.tire_size, t.tire_li, t.tire_si, t.other, t.id_vehicles_type vt,

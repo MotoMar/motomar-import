@@ -1,7 +1,7 @@
-"""Enis's `Baza produktowa.xlsx` (sheet „Baza produktowa”) -> rows.jsonl, one JSON object per row.
+"""`Baza produktowa.xlsx` Enisa (arkusz „Baza produktowa”) → rows.jsonl, jeden obiekt JSON na wiersz.
 
-Empty cells are left out and strings stripped; `_row` is the sheet's row number for the risk report. The 19
-header rows repeated inside the sheet stay in and convert.py drops them (`Typ` == `Typ`). Needs openpyxl.
+Puste komórki są pomijane, napisy przycięte; `_row` to numer wiersza w arkuszu, do raportu ryzyk. 19
+nagłówków powtórzonych w środku arkusza zostaje, a convert.py je odrzuca (`Typ` == `Typ`). Wymaga openpyxl.
 """
 import json
 import sys

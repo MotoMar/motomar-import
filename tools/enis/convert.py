@@ -1,23 +1,24 @@
-"""Enis product base (`Cenniki/Baza produktowa.xlsx`, dumped to rows.jsonl) -> motomar-import CSV.
+"""Baza produktowa Enisa (`Cenniki/Baza produktowa.xlsx`, zrzucona do rows.jsonl) → CSV importu.
 
-One converter for every brand, because Enis's columns are the same for all of them. Rules carried
-over from the latexopony lists (AKN-736):
+Jeden konwerter dla wszystkich marek, bo kolumny Enisa są dla wszystkich te same. Zasady przeniesione
+z cenników latexopony (AKN-736):
 
-- a row whose EAN is in one of our converted lists (`Cenniki/*/*.csv`) is skipped — the
-  manufacturer's own list is the better source;
-- only producers the base knows (by name, case-insensitive, or under ALIASES); the rest wait for a decision;
-- an existing tire keeps its `other` and tread and only gains marks; a mark of a kind the tire
-  already has (rim protector, run-flat, seal, silent, reinforcement) is not added;
-- the EAN is the tire's identity, the EPREL number is not: a new tire needs a valid GTIN-13 (check
-  digit), not an EPREL number; a second row with the same EAN is skipped;
-- rim protector, run-flat, seal and silent go out under the code the brand uses in the base;
-- a new tire with the same tread, size, indices and EPREL number as a base tire under another EAN
-  is the same tire and is skipped (Kumho, AKN-748).
+- wiersz, którego EAN jest w którymś z naszych cenników (`Cenniki/*/*.csv`), jest pomijany — cennik
+  producenta jest lepszym źródłem;
+- tylko producenci, których zna baza (po nazwie, bez wielkości liter, albo przez ALIASES); reszta czeka
+  na decyzję;
+- istniejąca opona zachowuje swoje `other` i bieżnik, dostaje tylko dopiski; oznaczenia rodzaju, który
+  już ma (rant, run-flat, uszczelnienie, wyciszenie, wzmocnienie), nie dostaje drugi raz;
+- tożsamością opony jest EAN, nie numer EPREL: nowa opona potrzebuje poprawnego GTIN-13 (cyfra
+  kontrolna), nie numeru EPREL; drugi wiersz z tym samym EAN-em jest pomijany;
+- rant, run-flat, uszczelnienie i wyciszenie idą kodem, którego marka używa w bazie;
+- nowa opona z tym samym bieżnikiem, rozmiarem, indeksami i numerem EPREL co opona z bazy pod innym
+  EAN-em to ta sama opona i jest pomijana (Kumho, AKN-748).
 
-Run from the work directory (run.sh). Reads rows.jsonl, db_all.tsv, treads.tsv, producers.tsv,
-dictionary_kinds.tsv and the converted lists under $CENNIKI. Writes `out/Enis - wszystkie.csv` (one file,
-to check against EPREL in one go) and a fresh `out/Enis - ryzyka.csv`, which the later steps append to.
-Optional arguments: producer names, to convert only those.
+Uruchamiany w katalogu roboczym (run.sh). Czyta rows.jsonl, db_all.tsv, treads.tsv, producers.tsv,
+dictionary_kinds.tsv i przerobione cenniki z $CENNIKI. Pisze `out/Enis - wszystkie.csv` (jeden plik, żeby
+sprawdzić go z EPREL-em za jednym razem) i od nowa `out/Enis - ryzyka.csv`, do którego dopisują kolejne kroki.
+Opcjonalne argumenty: nazwy producentów, żeby przerobić tylko ich.
 """
 import collections
 import csv
@@ -32,20 +33,20 @@ ONLY = {p.lower() for p in sys.argv[1:]}
 COLUMNS = 'numkat1 numkat2 ean id producent rodzaj bieznik rozmiar rozmiar2 indeksy indeksy2 inne opor mokre halas fale eprel netto'.split()
 VT = {'1': 'O', '2': 'D', '3': 'T'}
 TYPE = {'osobowy': 'O', 'dostawczy': 'D', '4x4': 'T', 'runflat': 'O', 'wyścigowy': 'O'}
-# marks the base keeps in `other`, never in a tread name (`X-Ice XI3 ZP` is `X-Ice XI3` with ZP)
+# oznaczenia, które baza trzyma w `other`, nigdy w nazwie bieżnika (`X-Ice XI3 ZP` to `X-Ice XI3` z ZP)
 NAME_MARK_KINDS = {'runflat', 'white_wall', 'reinforcement'}
 SINGLE_KINDS = {'runflat', 'silent', 'seal', 'rim_protector', 'reinforcement'}
 NEUTRAL_KINDS = {'season', 'ev', 'tube_type', 'country', 'tire_technology', 'load_range', 'ice_grip'}
-# Enis flag column -> dictionary code; None: the brand's own code of that kind, or nothing if it has none
+# kolumna flagi Enisa → kod słownika; None: kod tego rodzaju, którego używa marka, albo nic, gdy go nie ma
 FLAGS = {'c': 'C', 'lt': 'LT', 'ZR': 'ZR', 'm+s': 'M+S', '3PMSF': '3PMSF', 'Przyczepność na lodzie': 'Ice Grip',
          'owl': 'OWL', 'rbl': 'RBL', 'rwl': 'RWL', 'ww': 'WW', 'por': 'POR', 'connect': 'CONNECT',
          'dt': 'DT', 'dt1': 'DT1', 'k1': 'K1', 'k2': 'K2', 's1': 'S1', 's2': 'S2', 's3': 'S3', 'pz4': 'PZ4', 'ls': 'LS'}
 KIND_FLAGS = {'FR': ('rim_protector', 'FR'), 'rft': ('runflat', 'RFT'), 'seal': ('seal', None),
               'noise_reducing_tech': ('silent', None), 'silent_drive': ('silent', None)}
-# Enis spelling -> ours; the same tires share EANs (Point S 17, Firststop 33, Event 4)
+# pisownia Enisa → nasza; te same opony mają wspólne EAN-y (Point S 17, Firststop 33, Event 4)
 ALIASES = {'point s': 'point-s', 'firststop': 'first stop', 'event tyres': 'event tyre'}
 HOMOLOGATION = {'MOEXTENDED': 'MOE', 'N-0': 'N0', 'N-1': 'N1', '*MOE': ['*', 'MOE'], '☆': '*'}
-# free text in `dodatkowe` that means a mark
+# wolny tekst w `dodatkowe`, który znaczy oznaczenie
 EXTRA = {'płatek śniegu': '3PMSF'}
 
 kinds = collections.defaultdict(set)
@@ -65,7 +66,7 @@ def other_tokens(other):
 
 producers = {}
 for d in csv.DictReader(open('producers.tsv', encoding='utf-8'), delimiter='\t'):
-    producers.setdefault(d['producer'].lower(), d)  # `alcar` twice; not an Enis brand
+    producers.setdefault(d['producer'].lower(), d)  # `alcar` dwa razy; to nie marka Enisa
 db_by_ean, db_by_ref = {}, {}
 brand_tires = collections.defaultdict(list)
 for d in csv.DictReader(open('db_all.tsv', encoding='utf-8'), delimiter='\t'):
@@ -100,10 +101,10 @@ ACRONYMS = {'RFT', 'ROF', 'SSR', 'ZPS', 'AWD', 'UHP', 'HP', 'SUV', 'AT', 'MT', '
 
 
 def display_word(w):
-    """`SNOWMASTER` -> `Snowmaster`, `ICE-SPIDER` -> `Ice-Spider`; codes (`ZSR2`, `DU71`, `Z-107`, `A/S`) stay, `Sa12` -> `SA12`."""
+    """`SNOWMASTER` → `Snowmaster`, `ICE-SPIDER` → `Ice-Spider`; kody (`ZSR2`, `DU71`, `Z-107`, `A/S`) zostają, `Sa12` → `SA12`."""
     if re.fullmatch(r'[A-Za-z]{1,4}-?\d+[A-Za-z0-9+]*', w):
         return w.upper()
-    if w.isupper() and len(w) <= 2:  # `MA 702`, not `Ma 702`
+    if w.isupper() and len(w) <= 2:  # `MA 702`, nie `Ma 702`
         return w
     if not w.isupper() or '/' in w or w in ACRONYMS:
         return w
@@ -117,13 +118,13 @@ def display_name(pattern):
 
 
 def pattern_code(name):
-    """The pattern code in a tread name (`Z-401`, `ZSR2`, `KC53`), if there is one."""
+    """Kod wzoru w nazwie bieżnika (`Z-401`, `ZSR2`, `KC53`), jeśli jest."""
     codes = [w for w in name.upper().split() if re.fullmatch(r'[A-Z]{1,4}-?\d{2,4}[A-Z+]?', w)]
     return codes[-1] if codes else None
 
 
 class Brand:
-    """What the base says about one producer: its codes per kind, its treads' vehicle types and marks."""
+    """Co baza mówi o producencie: jego kody w każdym rodzaju, typy pojazdów jego bieżników i oznaczenia."""
 
     def __init__(self, pp):
         self.tires = brand_tires[pp]
@@ -181,8 +182,8 @@ for r in rows:
     r['Prod_enis'] = r['Prod']
     r['Prod'] = ALIASES.get(str(r['Prod']).strip().lower(), str(r['Prod']).strip())
 
-# EV: Enis marks 10 459 tires, and "EV-ready" is not an EV tire (Goodyear, AKN-741). A brand gets EV
-# only where its base tires already carry it on what Enis marks.
+# EV: Enis oznacza 10 459 opon, a „EV-ready” to nie opona EV (Goodyear, AKN-741). Marka dostaje EV
+# tylko tam, gdzie jej opony w bazie już je mają na tym, co oznacza Enis.
 for r in rows:
     d = db_by_ean.get(str(r['ean']))
     if d is not None and on(r, 'EV'):
@@ -194,8 +195,8 @@ def brand_takes_ev(prod):
     return seen[True] >= 10 and seen[True] >= 4 * seen[False]
 
 
-# Enis spells treads its own way (`ENRI U08`, `Proxes Comfort`); the tires both sides know by EAN
-# tell which base tread a name means
+# Enis pisze bieżniki po swojemu (`ENRI U08`, `Proxes Comfort`); opony, które obie strony znają po EAN,
+# mówią, który bieżnik z bazy znaczy dana nazwa
 seen_on = collections.defaultdict(collections.Counter)
 for r in rows:
     d = db_by_ean.get(str(r['ean']))
@@ -250,7 +251,7 @@ for r in rows:
         continue
 
     eprel = str(r.get('EPEREL kod') or '').strip()
-    eprel = eprel if eprel.isdigit() and int(eprel) > 0 else ''  # Enis writes `0` for none (Nexen)
+    eprel = eprel if eprel.isdigit() and int(eprel) > 0 else ''  # Enis pisze `0` zamiast braku (Nexen)
     if existing is None and not gtin_ok(ean):
         flag(r, 'pominięta', f'nowa opona, EAN {ean} ma złą cyfrę kontrolną')
         stats['pominięta: nowa ze złą cyfrą kontrolną EAN'] += 1
@@ -300,7 +301,7 @@ for r in rows:
         if t.lower() not in codes_lower:
             flag(r, 'poza słownikiem', f'{t!r}')
 
-    model = str(r.get('Bieżnik') or '').strip().replace('@', 'A')  # Pirelli `EUFORI@` is our `Euforia`
+    model = str(r.get('Bieżnik') or '').strip().replace('@', 'A')  # `EUFORI@` Pirelli to nasza `Euforia`
     for prefix in (producer, str(r['Prod_enis'])):
         if model.lower().startswith(prefix.lower() + ' '):
             model = model[len(prefix) + 1:]
@@ -312,13 +313,13 @@ for r in rows:
             kept.append(w)
             continue
         kind = next(iter(kind_of(mark) & NAME_MARK_KINDS))
-        if not any(kind in kind_of(t) for t in tokens):  # `HL` already says what `XL` would
+        if not any(kind in kind_of(t) for t in tokens):  # `HL` mówi już to, co powiedziałoby `XL`
             tokens.append(brand.code.get(kind, mark) if kind == 'runflat' else mark)
     model = ' '.join(kept)
     tokens = list(dict.fromkeys(tokens))
     if existing is not None and existing['tread'] not in ('', 'NULL', None):
         tread_out = existing['tread']
-    else:  # a new tire, or one the base keeps without a tread (Continental 3569)
+    else:  # nowa opona albo taka, którą baza trzyma bez bieżnika (Continental 3569)
         guess = resolve_tread(pp, model) if model else None
         known = seen_on.get((pp, squash(str(r.get('Bieżnik') or ''))))
         if known:
@@ -345,7 +346,7 @@ for r in rows:
             stats['pominięta: brak bieżnika'] += 1
             continue
 
-    # `dodatkowe` repeats what the tread name already says (`SUV` on `Ventus S1 evo2 SUV`)
+    # `dodatkowe` powtarza to, co mówi już nazwa bieżnika (`SUV` przy `Ventus S1 evo2 SUV`)
     in_name = {w.lower() for w in tread_out.split()}
     tokens = [t for t in tokens if t.lower() not in in_name]
 
@@ -391,7 +392,7 @@ for r in rows:
         'opor': fuel, 'mokre': wet, 'halas': noise_db, 'fale': noise_class, 'eprel': eprel,
     })
 
-# one spelling per new tread: `Van`/`VAN`, `Ice Gripper`/`ICE GRIPPER` land as the commonest one
+# jedna pisownia nowego bieżnika: `Van`/`VAN`, `Ice Gripper`/`ICE GRIPPER` dostają najczęstszą
 spellings = collections.defaultdict(collections.Counter)
 base_names = {(t['producer_id'], t['tread']) for ts in treads.values() for t in ts}
 
@@ -407,12 +408,12 @@ for item in out:
     if is_new_tread(item):
         item['bieznik'] = spellings[(item['producent'], squash(item['bieznik']))].most_common(1)[0][0]
 
-# one new tread per pattern code, under the fullest name the list gives it
+# jeden nowy bieżnik na kod wzoru, pod najpełniejszą nazwą, jaką daje lista
 for item in out:
     code_ = pattern_code(item['bieznik'])
     names = new_by_code.get((item['producent'], code_))
     if names and item['bieznik'] in names:
-        # `Z-401` joins `All Season Elite Z-401`; `Z-007 SUV` stays apart from `Z-007`, as the base keeps SUV treads
+        # `Z-401` dołącza do `All Season Elite Z-401`; `Z-007 SUV` zostaje osobno od `Z-007`, bo baza trzyma bieżniki SUV osobno
         fuller = [n for n in names if squash(n).endswith(squash(item['bieznik']))]
         item['bieznik'] = max(fuller, key=len)
 

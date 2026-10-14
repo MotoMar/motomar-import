@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-// What importing these CSVs would do to the names of tires already in the base, matched by EAN only
-// (a row the import matches by catalogue number is not simulated). Reads the database from .env, writes
-// nothing to it: the `other` and tread from the CSV go through the same regenerator the import uses.
+// Co import tych CSV zrobiłby z nazwami opon, które już są w bazie — dopasowanych tylko po EAN (wiersza,
+// który import dopasuje po numkacie, nie symuluje). Bazę bierze z .env i nic do niej nie zapisuje: `other`
+// i bieżnik z CSV przechodzą przez ten sam regenerator, którego używa import.
 //
 //   php tools/enis/sim.php OUT.tsv CSV...
 
@@ -43,7 +43,7 @@ foreach ($args as $file) {
         }
     }
 
-    /** @var array<int, string> $eanOf tire id => EAN */
+    /** @var array<int, string> $eanOf id opony => EAN */
     $eanOf = [];
 
     foreach (array_chunk(array_map('strval', array_keys($byEan)), 500) as $chunk) {

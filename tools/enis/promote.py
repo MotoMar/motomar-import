@@ -1,7 +1,7 @@
-"""Give the tires match_export.py found by catalogue number their EPREL number and label, before checkPricelist.
+"""Numer EPREL i etykieta dla opon, które match_export.py znalazł po numkacie — przed checkPricelist.
 
-Reads `out/Enis - wszystkie.csv` and `out/eksport-eprel.csv`, writes `out/Enis - do EPREL.csv` (what
-checkPricelist and apply_eprel.py read) and appends to `out/Enis - ryzyka.csv`.
+Czyta `out/Enis - wszystkie.csv` i `out/eksport-eprel.csv`, pisze `out/Enis - do EPREL.csv` (to czytają
+checkPricelist i apply_eprel.py) i dopisuje do `out/Enis - ryzyka.csv`.
 """
 import csv
 import re

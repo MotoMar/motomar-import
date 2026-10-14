@@ -1,7 +1,7 @@
-"""Contracts of the Enis tools on hand-made inputs: python3 -m unittest discover -s tools/enis -p 'test_*.py'
+"""Kontrakty narzędzi Enisa na ręcznie zrobionych danych: python3 -E -m unittest discover -s tools/enis -p 'test_*.py'
 
-Each test runs a script the way run.sh does, in a scratch work directory, and reads what it wrote.
-The EPREL cases come from the review of PR #7 (AKN-756), where each was a measured defect in a real run.
+Każdy test uruchamia skrypt tak jak run.sh, w tymczasowym katalogu roboczym, i czyta, co ten zapisał.
+Przypadki EPREL pochodzą z review PR #7 (AKN-756); każdy był zmierzonym błędem w prawdziwym przebiegu.
 """
 import csv
 import os
@@ -31,7 +31,7 @@ def run(work, script, env=None):
 
 
 def apply(row_changes=None, base_changes=None, check_changes=None):
-    """apply_eprel.py on one CSV row, at most one base tire and at most one checkPricelist result."""
+    """apply_eprel.py na jednym wierszu CSV, najwyżej jednej oponie z bazy i najwyżej jednym wyniku checkPricelist."""
     with tempfile.TemporaryDirectory(prefix='enis-test-') as directory:
         work = Path(directory)
         (work / 'out').mkdir()
@@ -67,20 +67,20 @@ class EprelIdentity(unittest.TestCase):
             'rozjazdy': 'szerokość: 205 → 225', 'eprel_etykieta': 'E/C/72 dB/B', 'eprel_oznaczenie': '225/55R16 91 V',
         })
         self.assertEqual(rows[0]['eprel'], '')
-        self.assertEqual(rows[0]['opor'], '', 'a rejected registration supplied the label')
+        self.assertEqual(rows[0]['opor'], '', 'odrzucona rejestracja dała etykietę')
 
     def test_different_gtin_invalidates_registration(self):
         rows = apply({'eprel': '123'}, check_changes={
             'rozjazdy': 'EAN: 4000000000006 → 4000000000013', 'eprel_etykieta': 'E/C/72 dB/B', 'eprel_oznaczenie': '205/55R16 91 V',
         })
-        self.assertEqual(rows[0]['eprel'], '', 'another GTIN kept its registration')
+        self.assertEqual(rows[0]['eprel'], '', 'rejestracja innego GTIN-u została')
         self.assertEqual(rows[0]['opor'], '')
 
     def test_speed_mismatch_does_not_rewrite_identity(self):
         rows = apply({'eprel': '123'}, check_changes={
             'rozjazdy': 'indeks prędkości: V → H', 'eprel_etykieta': 'E/C/72 dB/B', 'eprel_oznaczenie': '205/55R16 91 H',
         })
-        self.assertEqual(rows[0]['indeksy'], '91V', 'the registration rewrote the speed index')
+        self.assertEqual(rows[0]['indeksy'], '91V', 'rejestracja przepisała indeks prędkości')
         self.assertEqual(rows[0]['eprel'], '')
 
     def test_verified_label_is_filled(self):
@@ -108,7 +108,7 @@ class Duplicates(unittest.TestCase):
 
 
 class EmptyReports(unittest.TestCase):
-    """A run where nothing qualifies is a valid run: header-only reports, the previous output left alone."""
+    """Przebieg, w którym nic się nie kwalifikuje, jest poprawny: raporty z samym nagłówkiem, poprzedni wynik nietknięty."""
 
     def setUp(self):
         self.work = Path(tempfile.mkdtemp(prefix='enis-test-'))
