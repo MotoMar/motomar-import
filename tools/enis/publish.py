@@ -1,22 +1,27 @@
 """Copy the per-producer CSVs to $CENNIKI/Enis/CSV with their name changes, the new treads and a summary.
 
-The folder is this script's output and nothing else: it is emptied first, so a producer that dropped out
-leaves no stale file behind."""
-import collections, csv, os, shutil
+The folder is this script's output and nothing else: it is emptied before writing, so a producer that
+dropped out leaves no stale file behind — but only once the new output is there and complete."""
+import collections, csv, os, shutil, sys
 import openpyxl
 
 DEST = os.path.join(os.environ['CENNIKI'], 'Enis', 'CSV')
-shutil.rmtree(DEST, ignore_errors=True)
-os.makedirs(DEST)
 base_treads = {(t['producer_id'], t['tread']) for t in csv.DictReader(open('treads.tsv', encoding='utf-8'), delimiter='\t')}
 producer_id = {d['producer']: d['id'] for d in csv.DictReader(open('producers.tsv', encoding='utf-8'), delimiter='\t')}
 existing, refs = set(), set()
 for d in csv.DictReader(open('db_all.tsv', encoding='utf-8'), delimiter='\t'):
     existing.add(d['ean'])
     refs.add((d['pp'], d['ref']))
-sim = list(csv.DictReader(open('out/sim.tsv', encoding='utf-8'), delimiter='\t'))
-sim_header = list(sim[0].keys())
+sim_reader = csv.DictReader(open('out/sim.tsv', encoding='utf-8'), delimiter='\t')
+sim = list(sim_reader)
 rows = list(csv.DictReader(open('out/final.csv', encoding='utf-8'), delimiter='@'))
+missing = [p for p in ('out/Enis - ryzyka.csv', 'out/Enis - nowe bieżniki.csv') if not os.path.exists(p)]
+missing += [f'out/CSV/{p}.csv' for p in {r['producent'] for r in rows} if not os.path.exists(f'out/CSV/{p}.csv')]
+if not rows or missing:
+    # the previous output stays until there is a complete one to replace it
+    sys.exit(f"Nie publikuję: {'final.csv jest pusty' if not rows else 'brak ' + ', '.join(missing)}")
+shutil.rmtree(DEST, ignore_errors=True)
+os.makedirs(DEST)
 producer_of = {r['ean']: r['producent'] for r in rows}
 stats = collections.defaultdict(collections.Counter)
 new_treads = collections.defaultdict(set)
@@ -38,7 +43,7 @@ for producer in stats:
     stats[producer]['zmian nazw'] = len(changes[producer])
     if changes[producer]:
         with open(f'{DEST}/{producer} - zmiany nazw.tsv', 'w', encoding='utf-8', newline='') as f:
-            w = csv.DictWriter(f, fieldnames=sim_header, delimiter='\t')
+            w = csv.DictWriter(f, fieldnames=sim_reader.fieldnames, delimiter='\t')
             w.writeheader()
             w.writerows(changes[producer])
 shutil.copy('out/Enis - ryzyka.csv', f'{DEST}/Enis - ryzyka.csv')

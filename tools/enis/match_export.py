@@ -36,7 +36,8 @@ def ref(s):
 base = list(csv.DictReader(open('db_all.tsv', encoding='utf-8'), delimiter='\t'))
 eans, refs = {d['ean'] for d in base}, {(d['pp'], d['ref']) for d in base}
 producer_id = {d['producer']: d['id'] for d in csv.DictReader(open('producers.tsv', encoding='utf-8'), delimiter='\t')}
-rows = [r for r in csv.DictReader(open('out/Enis - wszystkie.csv', encoding='utf-8'), delimiter='@')
+reader = csv.DictReader(open('out/Enis - wszystkie.csv', encoding='utf-8'), delimiter='@')
+rows = [r for r in reader
         if r['ean'] not in eans and (producer_id[r['producent']], r['numkat1']) not in refs and not r['eprel'] and not r['opor']]
 brands = sorted({squash(r['producent']) for r in rows})
 
@@ -76,7 +77,7 @@ for r in rows:
     out.append(r | {'dopasowanie': how, 'eprel_reg': best.get('reg', ''), 'eprel_etykieta': best.get('label', ''),
                     'na_rynku_od': best.get('start') or '', 'na_rynku_do': best.get('end') or '', 'kandydatow': len(hit)})
 with open('out/eksport-eprel.csv', 'w', encoding='utf-8', newline='') as f:
-    w = csv.DictWriter(f, fieldnames=list(out[0].keys()), delimiter=';')
+    w = csv.DictWriter(f, fieldnames=reader.fieldnames + ['dopasowanie', 'eprel_reg', 'eprel_etykieta', 'na_rynku_od', 'na_rynku_do', 'kandydatow'], delimiter=';')
     w.writeheader()
     w.writerows(out)
 print(dict(stats))

@@ -357,10 +357,14 @@ Kontrakty:
   osobne bieżniki. Nowe bieżniki z najbliższym istniejącym są w
   `Enis - nowe bieżniki.csv` — w większości to nowe generacje
   (`Advantage 2`), nie inna pisownia, więc nic nie jest sklejane automatycznie.
-- **EPREL wygrywa** (zasada 4) tylko na numerze tej opony: etykieta i dB
-  z rejestru; `C` tylko gdy oznaczenie w rejestrze ma `C` przy rozmiarze;
-  `XL` rozstrzyga indeks nośności; numer innego rozmiaru albo indeksu jest
-  usuwany, opona zostaje. Brakujący numer bierze się z eksportu dziennego
+- **EPREL wygrywa** (zasada 4) tylko na numerze tej opony, i to rozstrzyga
+  się **zanim** cokolwiek z niego weźmiemy: numer, którego rejestr nie zna,
+  albo rejestracja z innym rozmiarem, indeksem nośności, indeksem prędkości
+  lub GTIN-em, jest usuwana i nie daje wierszowi nic — ani etykiety, ani
+  indeksu (Continental dostawał etykietę Baruma 205/65R16C, WestLake zmieniał
+  106T na 106H). Opona zostaje. Dopiero na potwierdzonym numerze: etykieta
+  i dB z rejestru; `C` tylko gdy oznaczenie w rejestrze ma `C` przy rozmiarze;
+  `XL` rozstrzyga indeks nośności. Brakujący numer bierze się z eksportu dziennego
   po `modelIdentifier` = `numkat1` (eksport nie ma EAN-ów ani nazw
   handlowych, więc działa tylko u marek, u których Enis podaje kod producenta).
 - **Żadnych duplikatów opon** — `apply_eprel.py`, na końcu. Nowa opona
@@ -368,9 +372,15 @@ Kontrakty:
   w pliku), albo gdy ten sam bieżnik, rozmiar, indeksy, homologacje i obecność
   run-flat/uszczelnienia/wyciszenia ma opona w bazie albo wcześniej w pliku —
   chyba że obie mają **różne** numery EPREL (dwie rejestracje to dwie opony).
-  Wzmocnienie i rant są poza porównaniem: pierwsze wynika z indeksu nośności,
-  drugi baza zapisuje na cztery sposoby (FR, FSL, MFS, FP). 2026-10-14
-  wypadło 6 817 opon.
+  Indeks nośności porównujemy w całości (`104/102` spotyka tylko `104/102`,
+  tak go trzyma `tires.tire_li`), a w bazie liczą się też opony **bez EAN-u**
+  (Accelera 6526 ma pusty EAN, a w `ref` EAN, który Enis podaje pod innym
+  numkatem — import nie znalazłby jej ani tak, ani tak). Wzmocnienie i rant są
+  poza porównaniem: pierwsze wynika z indeksu nośności, drugi baza zapisuje na
+  cztery sposoby (FR, FSL, MFS, FP). 2026-10-14 wypadło 7 946 opon.
+
+Kontrakty pilnują testy (bez zależności poza Pythonem):
+`python3 -E -m unittest discover -s tools/enis -p 'test_*.py'`.
 
 Pułapki:
 
@@ -380,6 +390,7 @@ Pułapki:
 - `Enis - ryzyka.csv` zakłada od nowa `convert.py`, kolejne kroki dopisują.
   Kroku ze środka nie uruchamiaj osobno, bo raport się zdubluje — cały `run.sh`.
 - `publish.py` czyści `Cenniki/Enis/CSV/` przed zapisem: to wyłącznie jego wyjście.
+  Gdy wynik jest pusty albo niepełny, kończy się błędem i poprzedniego nie rusza.
 - `mysql -B` zamienia `\n` na `\\n`, ale `\r` przepuszcza, a Python łamie na nim
   linię — bieżnik 6027 to `Surpax SP5 \r\n(duplikat)`. Zrzut w `run.sh`
   spłaszcza nazwę bieżnika; nowa kolumna tekstowa w zrzucie potrzebuje tego samego.
