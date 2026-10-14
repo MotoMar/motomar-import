@@ -16,7 +16,7 @@ ob_start();
         <div class="collapse collapse-arrow border border-base-300 rounded-xl mb-6">
             <input type="checkbox">
             <div class="collapse-title text-sm font-medium text-base-content/70">
-                Format pliku — 18 kolumn
+                Format pliku — 18 kolumn, 19. opcjonalna
             </div>
             <div class="collapse-content">
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 pt-1">
@@ -40,6 +40,7 @@ ob_start();
                         16 => ['fale',     'Klasa hałasu'],
                         17 => ['eprel',    'ID EPREL'],
                         18 => ['netto',    'Cena netto'],
+                        19 => ['sezon',    'Sezon (opcjonalnie)'],
                     ];
                     foreach ($columns as $n => [$code, $label]):
                     ?>
