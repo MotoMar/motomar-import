@@ -311,6 +311,81 @@ Nagłówek = numer wiersza (od 0) w `openpyxl`. „EPREL" mówi, gdzie leży num
 | `VREDESTEIN_…_01.05.2026` | VREDESTEIN, VREDESTEIN CLASSIC | 8 / 5 | `EPREL CODE` | zastępuje plik z 01.06.2025 (651 wspólnych EAN) |
 | `VREDESTEIN_…_01062025` | — | — | — | **zastąpiony**; kolumna ceny to `#REF!` |
 
+### Baza produktowa Enis (`tools/enis/`)
+
+`Cenniki/Baza produktowa.xlsx` od Enisa (157 tys. opon, 241 marek, jeden
+układ kolumn dla wszystkich) → CSV importu per producent w
+`Cenniki/Enis/CSV/`. Jeden przebieg (AKN-756):
+
+```bash
+# świeży eksport EPREL — wymaga EPREL_API_KEY, w motomar-data-fixer
+php bin/fetchExport.php --dir=claude/cache/export-RRRR-MM-DD
+tools/enis/run.sh ~/Development/MotoMar/motomar-data-fixer/claude/cache/export-RRRR-MM-DD
+```
+
+Skrypty to Python (3.9, `openpyxl` z site-packages użytkownika — stąd
+`python3 -E`, a nie `-I`) plus dwa skrypty PHP na kodzie importu:
+`validate.php` (parser kroku 1; kod wyjścia 1 przy złym wierszu) i `sim.php`
+(nowe nazwy istniejących opon). Dane robocze w `tmp/enis/`. Z bazy tylko czyta
+(`motomar_dev`, zmienna `DB`). `checkPricelist` leży na gałęzi
+`aknicram/eprel-pricelist-check` w motomar-data-fixer, **nie na `main`** —
+ścieżkę do jej worktree daje `EPREL_PRICELIST`.
+
+Kontrakty:
+
+- **Tożsamością jest EAN, nie numer EPREL.** Nowa opona musi mieć EAN
+  z poprawną cyfrą kontrolną GTIN-13; numer EPREL nie jest wymagany. Enis pisze
+  `0` zamiast braku numeru (Nexen) — to brak.
+- **Pomijane od razu:** EAN z naszych cenników producentów
+  (`Cenniki/*/*.csv`, poza `Enis/`) — cennik producenta jest lepszym źródłem;
+  marki, których nie ma w `products_producers` (78 marek, 16 tys. opon — czekają
+  na decyzję); EAN, który w bazie należy do innego producenta. Inna pisownia
+  tej samej marki idzie przez `ALIASES` w `convert.py` (`Point S` → `Point-S`;
+  potwierdzone wspólnymi EAN-ami).
+- **Istniejąca opona** (po EAN albo po `numkat1` + producent, jak w
+  `ImportProcessor`) zachowuje swoje `other` i bieżnik, dostaje tylko dopiski;
+  oznaczenia rodzaju, który już ma (rant, run-flat, uszczelnienie, wyciszenie,
+  wzmocnienie), nie dostaje drugi raz. Rant, run-flat, uszczelnienie
+  i wyciszenie idą kodem, którego marka używa w bazie.
+- **EV** tylko u marek, u których baza na wspólnych EAN-ach się z Enisem
+  zgadza (≥ 10 i ≥ 4:1) — „EV-ready” to nie opona EV.
+- **Bieżnik** to kolumna `Bieżnik` Enisa, dopasowana do bazy w kolejności:
+  bieżnik istniejącej opony → bieżnik, na którym leżą opony o wspólnych EAN-ach
+  → ta sama nazwa (też po złożeniu) → ten sam kod wzoru (`Z-401`) → nowy.
+  Z nazwy wypadają oznaczenia, które baza trzyma w `other` (run-flat, napisy na
+  boku, `XL`) i idą do `inne`; `SUV`, `VAN`, `4x4` zostają, bo baza ma je jako
+  osobne bieżniki. Nowe bieżniki z najbliższym istniejącym są w
+  `Enis - nowe bieżniki.csv` — w większości to nowe generacje
+  (`Advantage 2`), nie inna pisownia, więc nic nie jest sklejane automatycznie.
+- **EPREL wygrywa** (zasada 4) tylko na numerze tej opony: etykieta i dB
+  z rejestru; `C` tylko gdy oznaczenie w rejestrze ma `C` przy rozmiarze;
+  `XL` rozstrzyga indeks nośności; numer innego rozmiaru albo indeksu jest
+  usuwany, opona zostaje. Brakujący numer bierze się z eksportu dziennego
+  po `modelIdentifier` = `numkat1` (eksport nie ma EAN-ów ani nazw
+  handlowych, więc działa tylko u marek, u których Enis podaje kod producenta).
+- **Żadnych duplikatów opon** — `apply_eprel.py`, na końcu. Nowa opona
+  wypada, gdy jej numer EPREL ma już opona producenta (w bazie albo wcześniej
+  w pliku), albo gdy ten sam bieżnik, rozmiar, indeksy, homologacje i obecność
+  run-flat/uszczelnienia/wyciszenia ma opona w bazie albo wcześniej w pliku —
+  chyba że obie mają **różne** numery EPREL (dwie rejestracje to dwie opony).
+  Wzmocnienie i rant są poza porównaniem: pierwsze wynika z indeksu nośności,
+  drugi baza zapisuje na cztery sposoby (FR, FSL, MFS, FP). 2026-10-14
+  wypadło 6 817 opon.
+
+Pułapki:
+
+- **API EPREL po numerze ma limit 50 000 żądań na 5 minut.** Dwa przebiegi
+  `checkPricelist` po 44 tys. numerów jeden po drugim dały 14 200 błędów
+  pobrania zamiast ~1 000 — między nimi trzeba odczekać.
+- `Enis - ryzyka.csv` zakłada od nowa `convert.py`, kolejne kroki dopisują.
+  Kroku ze środka nie uruchamiaj osobno, bo raport się zdubluje — cały `run.sh`.
+- `publish.py` czyści `Cenniki/Enis/CSV/` przed zapisem: to wyłącznie jego wyjście.
+- `mysql -B` zamienia `\n` na `\\n`, ale `\r` przepuszcza, a Python łamie na nim
+  linię — bieżnik 6027 to `Surpax SP5 \r\n(duplikat)`. Zrzut w `run.sh`
+  spłaszcza nazwę bieżnika; nowa kolumna tekstowa w zrzucie potrzebuje tego samego.
+- `sim.php` symuluje tylko opony dopasowane po EAN; opona dopasowana po
+  `numkat1` zmieni nazwę bez śladu w `zmiany nazw.tsv`.
+
 ### Czego jeszcze nie wiemy
 
 - **Jak dojść do nowszej wersji zgłoszenia EPREL.** Do tego czasu obowiązuje
