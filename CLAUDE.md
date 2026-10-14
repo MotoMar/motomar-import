@@ -367,9 +367,23 @@ Kontrakty:
   `XL` rozstrzyga indeks nośności. Brakujący numer bierze się z eksportu dziennego
   po `modelIdentifier` = `numkat1` (eksport nie ma EAN-ów ani nazw
   handlowych, więc działa tylko u marek, u których Enis podaje kod producenta).
+- **Jeden numer EPREL bywa przy kilku EAN-ach** — u Enisa 2 916 numerów
+  (AKN-758), w naszej bazie też. Przy tym samym rozmiarze, pierwszym LI, SI
+  i zgodnym bieżniku (ta sama nazwa po złożeniu albo jedna zawiera drugą:
+  `Z-401` / `All Season Elite Z-401`) to ta sama opona pod kilkoma EAN-ami —
+  Dunlop ma stary EAN Goodyeara i nowy Sumitomo. Przy niezgodnym bieżniku
+  (`Winter i*cept evo2` / `evo3`, `Cinturato P7` / `P Zero`) numer jest po
+  którejś stronie cudzy, również w bazie: nowa opona, która jest jedyna ze
+  swoim bieżnikiem przy tym numerze, traci go razem z etykietą i poprawkami
+  z rejestru, a sama zostaje. Rozmiar przy wspólnym numerze porównujemy
+  tolerancyjnie, bo baza bywa niepełna (pusty SI, `195R14` bez profilu). Takie
+  przypadki są w `Enis - wspólny EPREL do przejrzenia.csv` — część to ta sama
+  opona pod dwiema nazwami (Kumho `Solus HS51` / `Ecsta HS51`), czego żaden
+  automat nie rozstrzygnie.
 - **Żadnych duplikatów opon** — `apply_eprel.py`, na końcu. Nowa opona
   wypada, gdy jej numer EPREL ma już opona producenta (w bazie albo wcześniej
-  w pliku), albo gdy ten sam bieżnik, rozmiar, indeksy, homologacje i obecność
+  w pliku) z tym samym rozmiarem, pierwszym LI, SI i zgodnym bieżnikiem, albo
+  gdy ten sam bieżnik, rozmiar, indeksy, homologacje i obecność
   run-flat/uszczelnienia/wyciszenia ma opona w bazie albo wcześniej w pliku —
   chyba że obie mają **różne** numery EPREL (dwie rejestracje to dwie opony).
   Indeks nośności porównujemy w całości (`104/102` spotyka tylko `104/102`,
