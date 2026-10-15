@@ -23,6 +23,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use App\Bootstrap;
 use App\Domain\Csv\CsvParser;
+use App\Domain\Csv\TireRow;
 use App\Domain\Import\DefaultMapping;
 use App\Domain\Import\ImportAborted;
 use App\Domain\Import\ImportHistoryRepository;
@@ -94,7 +95,8 @@ foreach ($files as $file) {
     }
 }
 
-$runner = new ImportRunner(Bootstrap::pdo(), $repo, new ImportHistoryRepository(), Bootstrap::logger());
+// bez --apply nie powstaje: konstruktor ImportHistoryRepository potrafi założyć tabelę
+$runner = null;
 $parser = new CsvParser();
 $processor = new ImportProcessor($repo, Bootstrap::logger());
 $used = [];
@@ -115,17 +117,18 @@ foreach ($files as $file) {
     }
 
     $models = $parser->extractUniqueModels($rows);
+    $producerNames = array_values(array_unique(array_map(static fn (TireRow $row): string => $row->producerName, $rows)));
     $treadsByProducer = [];
 
-    foreach (array_unique(array_column($models, 'producer_name')) as $producerName) {
-        $producer = $repo->producerByName((string) $producerName);
+    foreach ($producerNames as $producerName) {
+        $producer = $repo->producerByName($producerName);
 
         if ($producer !== null) {
-            $treadsByProducer[(string) $producerName] = array_values($repo->treadsByProducer(RowField::integer($producer, 'id')));
+            $treadsByProducer[$producerName] = array_values($repo->treadsByProducer(RowField::integer($producer, 'id')));
         }
     }
 
-    $default = DefaultMapping::build($models, $treadsByProducer, $seasons, $overrides);
+    $default = DefaultMapping::build($models, $producerNames, $treadsByProducer, $seasons, $overrides);
     $new = $default->newModels();
 
     // sezon z --season liczy się tylko dla nowego modelu; istniejący ma swój
@@ -154,6 +157,7 @@ foreach ($files as $file) {
         continue;
     }
 
+    $runner ??= new ImportRunner(Bootstrap::pdo(), $repo, new ImportHistoryRepository(), Bootstrap::logger());
     $uuid = ImportSession::uuid4();
     Bootstrap::logger()->info('CLI import', ['uuid' => $uuid, 'file' => $name, 'rows' => count($rows)]);
 

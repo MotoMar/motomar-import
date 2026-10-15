@@ -88,6 +88,11 @@ final readonly class ImportRunner
         } catch (\Throwable $e) {
             $this->logger->error('Import failed', ['uuid' => $uuid, 'error' => $e->getMessage()]);
 
+            // Savepointy wierszy same zamieniają zakleszczenie na ImportAborted, ale
+            // nowe bieżniki i przebudowa `tires_codes` idą poza nimi — bez tego CLI
+            // nie wie, że plik wolno powtórzyć.
+            ImportTransaction::rethrowIfLost($e);
+
             throw $e;
         }
 
