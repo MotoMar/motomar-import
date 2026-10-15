@@ -27,6 +27,7 @@ function csvModel(string $producer, string $model, array $seasons = []): array
 it('maps a model to the tread of the same name regardless of case, with the tread season', function (): void {
     $mapping = DefaultMapping::build(
         ['Leao|nova-force' => csvModel('Leao', 'nova-force', ['zimowa' => 3])],
+        ['Leao'],
         ['Leao' => [['id' => 7, 'tread' => 'Nova-Force', 'season_id' => 1], ['id' => 8, 'tread' => 'Nova-Force Acro', 'season_id' => 1]]],
         mappingSeasons(),
     );
@@ -44,6 +45,7 @@ it('maps a model to the tread of the same name regardless of case, with the trea
 it('makes a new model with the season most rows name when no tread matches', function (): void {
     $mapping = DefaultMapping::build(
         ['Leao|Winter Defender' => csvModel('Leao', 'Winter Defender', ['zimowa' => 4, 'całoroczna' => 1])],
+        ['Leao'],
         ['Leao' => [['id' => 7, 'tread' => 'Winter Defender HP', 'season_id' => 2]]],
         mappingSeasons(),
     );
@@ -62,8 +64,8 @@ it('rejects a new model whose season the file leaves open, unless the operator n
     $models = ['Lanvigator|Ice Power' => csvModel('Lanvigator', 'Ice Power', ['zimowa' => 1, 'całoroczna' => 1])];
     $treads = ['Lanvigator' => []];
 
-    $open = DefaultMapping::build($models, $treads, mappingSeasons());
-    $named = DefaultMapping::build($models, $treads, mappingSeasons(), ['Lanvigator|Ice Power' => 2]);
+    $open = DefaultMapping::build($models, ['Lanvigator'], $treads, mappingSeasons());
+    $named = DefaultMapping::build($models, ['Lanvigator'], $treads, mappingSeasons(), ['Lanvigator|Ice Power' => 2]);
 
     expect($open->mapping)->toBe([])
         ->and($open->problems)->toHaveCount(1)
@@ -75,6 +77,7 @@ it('rejects a new model whose season the file leaves open, unless the operator n
 it('rejects a model when two treads of the producer carry its name', function (): void {
     $mapping = DefaultMapping::build(
         ['Nexen|Winguard' => csvModel('Nexen', 'Winguard', ['zimowa' => 1])],
+        ['Nexen'],
         ['Nexen' => [['id' => 3, 'tread' => 'Winguard', 'season_id' => 2], ['id' => 9, 'tread' => 'WinGuard', 'season_id' => 2]]],
         mappingSeasons(),
     );
@@ -84,8 +87,20 @@ it('rejects a model when two treads of the producer carry its name', function ()
 });
 
 it('rejects a producer that is not in the database instead of creating it', function (): void {
-    $mapping = DefaultMapping::build(['Nowa|X' => csvModel('Nowa', 'X', ['letnia' => 1])], [], mappingSeasons());
+    $mapping = DefaultMapping::build(['Nowa|X' => csvModel('Nowa', 'X', ['letnia' => 1])], ['Nowa'], [], mappingSeasons());
 
     expect($mapping->mapping)->toBe([])
         ->and($mapping->problems)->toBe(['producenta „Nowa” nie ma w bazie']);
+});
+
+it('rejects an unknown producer even when its row has no model', function (): void {
+    // wiersz bez bieżnika nie trafia do extractUniqueModels(), a import i tak założyłby producenta
+    $mapping = DefaultMapping::build(
+        ['Leao|Nova-Force' => csvModel('Leao', 'Nova-Force', ['letnia' => 1])],
+        ['Leao', 'Nowa', ''],
+        ['Leao' => [['id' => 7, 'tread' => 'Nova-Force', 'season_id' => 1]]],
+        mappingSeasons(),
+    );
+
+    expect($mapping->problems)->toBe(['producenta „Nowa” nie ma w bazie']);
 });

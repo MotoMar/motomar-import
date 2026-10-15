@@ -28,14 +28,25 @@ final readonly class DefaultMapping
 
     /**
      * @param array<array-key, mixed>                     $models           z `CsvParser::extractUniqueModels()`
+     * @param list<string>                                $producerNames    producenci wszystkich wierszy pliku — także tych bez modelu, których `extractUniqueModels()` nie zwraca, a import i tak by założył
      * @param array<string, list<array<string, mixed>>>   $treadsByProducer nazwa producenta → `TireRepository::treadsByProducer()`; brak klucza = producenta nie ma w bazie
      * @param array<int, array<string, mixed>>            $seasons          z `TireRepository::allSeasons()`
      * @param array<string, int>                          $seasonOverrides  klucz mapowania (`Producent|Model`) → id sezonu
      */
-    public static function build(array $models, array $treadsByProducer, array $seasons, array $seasonOverrides = []): self
+    public static function build(array $models, array $producerNames, array $treadsByProducer, array $seasons, array $seasonOverrides = []): self
     {
         $mapping  = [];
         $problems = [];
+
+        foreach (array_unique(array_merge($producerNames, array_map(
+            static fn (mixed $m): string => is_array($m) ? RowField::text(RowField::normalise($m), 'producer_name') : '',
+            array_values($models),
+        ))) as $producerName) {
+            // pusty producent: `ImportProcessor` pomija taki wiersz, niczego nie zakłada
+            if ($producerName !== '' && !array_key_exists($producerName, $treadsByProducer)) {
+                $problems[] = "producenta „{$producerName}” nie ma w bazie";
+            }
+        }
 
         foreach ($models as $key => $model) {
             if (!is_array($model)) {
@@ -48,7 +59,6 @@ final readonly class DefaultMapping
             $modelName    = RowField::text($model, 'model_name');
 
             if (!array_key_exists($producerName, $treadsByProducer)) {
-                $problems[] = "producenta „{$producerName}” nie ma w bazie";
                 continue;
             }
 
