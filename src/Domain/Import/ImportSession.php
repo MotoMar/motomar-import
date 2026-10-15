@@ -189,7 +189,7 @@ final class ImportSession
         return $data;
     }
 
-    private static function uuid4(): string
+    public static function uuid4(): string
     {
         $b = random_bytes(16);
         $b[6] = chr(ord($b[6]) & 0x0f | 0x40);

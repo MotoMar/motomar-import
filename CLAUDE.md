@@ -70,6 +70,18 @@ w `tires_width` cały rozmiar `4.10H19`, a w `tires_construction` `- 19`, więc
 generator składa „4.10H19 - 19". Na `motomar_dev` (2026-10-08) `--all` dawał
 dwie takie nazwy (25146, 93312) — przed `--all --apply` popraw dane, nie generator.
 
+## Import z linii poleceń
+
+`bin/import.php PLIK.csv […]` robi to, co operator klikający „dalej” we
+wszystkich krokach kreatora (AKN-768): bieżnik o tej samej nazwie albo nowy
+model, sezon z kolumny `sezon`, opcje kroku 4 z `ImportRunner::DEFAULT_OPTIONS`
+(z tej samej stałej czyta formularz). Zapis idzie przez `ImportRunner`, wspólny
+z `ExecuteController` — zmiana przebiegu importu w jednym miejscu dotyczy obu.
+Bez `--apply` tylko plan. Plik, przy którym kreator czekałby na człowieka
+(sezon nierozstrzygnięty, dwa bieżniki o tej nazwie, producent spoza bazy),
+jest odrzucany; sezon można podać `--season="Producent|Model=Zimowa"`.
+W `import_history` zapisuje się jako `cli`.
+
 ## Niezmienniki pilnowane testami
 
 `VehicleTypeClassificationOrder` musi zaczynać się listą z

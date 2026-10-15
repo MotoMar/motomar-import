@@ -128,42 +128,42 @@ ob_start();
                     <h3 class="font-semibold text-base mb-3">Opcje aktualizacji istniejących opon</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <label class="label cursor-pointer justify-start gap-3">
-                            <input type="checkbox" name="update_labels" value="1" class="checkbox checkbox-primary" checked>
+                            <input type="checkbox" name="update_labels" value="1" class="checkbox checkbox-primary"<?= \App\Domain\Import\ImportRunner::DEFAULT_OPTIONS['update_labels'] ? ' checked' : '' ?>>
                             <span class="label-text">
                                 <span class="font-medium">Etykieta EU</span>
                                 <span class="block text-xs text-base-content/60">Opór toczenia, przyczepność, hałas, fale, EPREL</span>
                             </span>
                         </label>
                         <label class="label cursor-pointer justify-start gap-3">
-                            <input type="checkbox" name="update_inne" value="1" class="checkbox checkbox-primary" checked>
+                            <input type="checkbox" name="update_inne" value="1" class="checkbox checkbox-primary"<?= \App\Domain\Import\ImportRunner::DEFAULT_OPTIONS['update_inne'] ? ' checked' : '' ?>>
                             <span class="label-text">
                                 <span class="font-medium">Oznaczenia (inne)</span>
                                 <span class="block text-xs text-base-content/60">Run-flat, wzmocnienie, homologacje</span>
                             </span>
                         </label>
                         <label class="label cursor-pointer justify-start gap-3">
-                            <input type="checkbox" name="update_structure" value="1" class="checkbox">
+                            <input type="checkbox" name="update_structure" value="1" class="checkbox"<?= \App\Domain\Import\ImportRunner::DEFAULT_OPTIONS['update_structure'] ? ' checked' : '' ?>>
                             <span class="label-text">
                                 <span class="font-medium">Struktura rozmiaru</span>
                                 <span class="block text-xs text-base-content/60">Wymiary, LI/SI, rozmiar — domyślnie wyłączone</span>
                             </span>
                         </label>
                         <label class="label cursor-pointer justify-start gap-3">
-                            <input type="checkbox" name="update_price" value="1" class="checkbox">
+                            <input type="checkbox" name="update_price" value="1" class="checkbox"<?= \App\Domain\Import\ImportRunner::DEFAULT_OPTIONS['update_price'] ? ' checked' : '' ?>>
                             <span class="label-text">
                                 <span class="font-medium">Ceny katalogowe</span>
                                 <span class="block text-xs text-base-content/60">Aktualizuje price_catalog_netto takze dla ofert specjalnych</span>
                             </span>
                         </label>
                         <label class="label cursor-pointer justify-start gap-3">
-                            <input type="checkbox" name="update_ref" value="1" class="checkbox">
+                            <input type="checkbox" name="update_ref" value="1" class="checkbox"<?= \App\Domain\Import\ImportRunner::DEFAULT_OPTIONS['update_ref'] ? ' checked' : '' ?>>
                             <span class="label-text">
                                 <span class="font-medium">REF (numery katalogowe)</span>
                                 <span class="block text-xs text-base-content/60">Aktualizuje REF/REF2 na podstawie EAN</span>
                             </span>
                         </label>
                         <label class="label cursor-pointer justify-start gap-3">
-                            <input type="checkbox" name="update_tread" value="1" class="checkbox">
+                            <input type="checkbox" name="update_tread" value="1" class="checkbox"<?= \App\Domain\Import\ImportRunner::DEFAULT_OPTIONS['update_tread'] ? ' checked' : '' ?>>
                             <span class="label-text">
                                 <span class="font-medium">Bieżnik (model)</span>
                                 <span class="block text-xs text-base-content/60">Przepina istniejące opony do modelu wybranego w mapowaniu</span>
