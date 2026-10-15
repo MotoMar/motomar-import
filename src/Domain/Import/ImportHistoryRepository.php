@@ -35,11 +35,12 @@ final class ImportHistoryRepository
         int $skipped,
         int $errors,
         array $errorMessages,
-        array $options
+        array $options,
+        ?string $user = null,
     ): int {
         // Extract username without domain
         $sessionUser = $_SESSION['_user'] ?? null;
-        $userEmail = is_string($sessionUser) ? $sessionUser : (Auth::email() ?? 'unknown');
+        $userEmail = $user ?? (is_string($sessionUser) ? $sessionUser : (Auth::email() ?? 'unknown'));
         $username = $this->extractUsername($userEmail);
         $options = $this->withoutRemovedOptions($options);
 
