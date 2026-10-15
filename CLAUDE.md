@@ -286,6 +286,31 @@ plik nie ma legendy, Yokohama ma zakłady w Suzhou i Hangzhou.
 w Indonezji jest tylko sprzedaż opon, w Indiach „Yokohama India Pvt. Ltd.
 (Production & Sales)", osobówki, Bahadurgarh. 19 rozmiarów BluEarth-Es ES32.
 
+### GCO (Continental, Uniroyal, Barum)
+
+Przerobione 2026-10-08, konwerter w `tmp/research/gco/` (gitignored).
+
+- **Pełniejszym źródłem oznaczeń jest `Opis`**, nie kolumny: `255/50R19 103W ML
+  ContiSportContact 5 SUV SSR MOE`. Przed bieżnikiem stoją rozmiar
+  (prefiks `HL`/`LT`/`T`, `ZR`, sufiks `C`/`CP`), indeksy, `XL`/`RF`, `FR`/`ML`; za
+  nim `SUV`, homologacje, `SSR`, `ContiSeal`, `ContiSilent` i `8PR`. Kolumna `Inne`
+  bywa mniej dokładna (`MO` przy `MO-S` w opisie).
+- **Legenda pliku** (arkusz „Legenda”): `+` = VW (w opisie `(+)`, kod `VW`),
+  `R` = Renault (kod `RE`, bo w słowniku `R` to tylko indeks prędkości),
+  `J LR` = Jaguar & Land Rover (`JLR`), `i` = NIO, `I*` = BMW Gran Coupe.
+  `BB` = Brabus (SportContact 7 Force, osobny model, continental-tires.com).
+- **Bez kodu w słowniku** (giną po cichu): `CRM`, `R0`, `i`, `ZK`, `BB`, `ND1`,
+  `NG0`, `I*`, `AO3`, `LRD`/`LRE`. `AL` w kolumnie FR (144 wiersze) nie ma
+  w legendzie, a opis tych opon mówi `FR` — bierzemy `FR` z opisu.
+- `EV` dla obu `Yes with symbol` i `Yes w/o symbol` — tak leży w bazie
+  (2 470 z 2 651 dopasowanych po EAN).
+- `Rodzaj`: `Osobowe` i `Dojazdowe` → `O`, `VAN` → `D`, `Osobowe/SUV` i `4x4` → `T`.
+- `205R16C` (bez profilu): profil z kolumny `Rozmiar` (`205/82R16`), tak jak w bazie.
+- **Kolejność w `inne` to kolejność w nazwie**, a nowa nazwa to nowy `better_slug`.
+  U istniejących opon zachowujemy ich kolejność `M+S`/`3PMSF`; samo przestawienie
+  zmieniało 471 nazw.
+- Etykiety z cennika zgadzały się z EPREL w 3 682 numerach (`checkPricelist`).
+
 ### Ceny
 
 Nie interesują nas — ceny katalogowej nigdzie nie pokazujemy, `netto` zostaje
@@ -308,7 +333,7 @@ Nagłówek = numer wiersza (od 0) w `openpyxl`. „EPREL" mówi, gdzie leży num
 | `DUNLOP_…_01.06.2026` | DDP PLN 02.2026 EN | 7 | URL `EPREL URL` | `Status` (phase out / new size), `End of production`; `Commercial Van Mark`, `XL`, `Snowflake`, `Icemark`, `Rim protection` |
 | `FALKEN_…_01.06.2026` | DDP PLN 02.2026 EN | 6 | URL `EPREL URL` | układ Dunlopa; kody z sufiksem kraju (`336735TH`) to osobne opony |
 | `GBR_…_01.06.2026` | Cennik | 11 | `EPREL code` | Bridgestone/Firestone; `RFT`, `Wzmocnienie` (XL), `Rant ochronny` TAK, `Enliten`, `B-Silent`, `Oznaczenie EV` |
-| `GCO_…_01.06.2026` | CONTINENTAL, UNIROYAL, BARUM | 12 | URL `E2 EPREL Link` | **nie** „Formularz zbiorczy" (suma tamtych); `Następca`, `Dostępność do`; hałas `B (71 dB)` |
+| `GCO_…_01.06.2026` | CONTINENTAL, UNIROYAL, BARUM | 12 | URL `E2 EPREL Link` | **nie** „Formularz zbiorczy" (suma tamtych); `Następca`, `Dostępność do`; hałas `B (71 dB)`; oznaczenia — niżej |
 | `GGY_COOPER_…_VER27082026` | PriceList | 2 | URL `EPREL` | GOODYEAR 1 954, COOPER 594, FULDA 282, DEBICA 192 (u nas `Dębica`); `Rodzaj produktów (status)` PHASED-OUT; `Dodatkowe oznaczenia`; 3PMSF/M+S jako `Y`/`N` |
 | `HANKOOK_ALLSEASON_01.01.2026 (1)` | — | — | — | **zastąpiony** przez v2 z 28.07 |
 | `HANKOOK_*_28072026` (lato, zima, całoroczne) | arkusze EV, formularz/zima, „do wyczerpania zapasów" | 9 (+10 podnagłówki) | URL za kolumną `Uwagi` | nagłówek w dwóch wierszach: „Parametry" rozpada się na opór/przyczepność/hałas/dB; arkusz EV i główny się nie nakładają |
