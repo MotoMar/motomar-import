@@ -20,3 +20,6 @@ composer.phar
 
 # composer.lock is committed on purpose — this is an application, not a library,
 # and everyone running the import should get the same dependency versions.
+
+# Metadane Findera.
+.DS_Store
